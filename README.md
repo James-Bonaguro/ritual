@@ -50,10 +50,14 @@ It clicks through the real UI, so a screenshot that looks right is also proof th
 ## Deploying
 
 Pushes to `main` build, test, and publish to GitHub Pages. This requires **Settings →
-Pages → Source: GitHub Actions** to be enabled once on the repository.
+Pages → Source: GitHub Actions** to be enabled once on the repository. Until it is, the
+`deploy` job fails immediately with no steps — that specific signature means Pages is off,
+not that the deploy itself broke.
 
-The base path is `/workout-prep/` (`vite.config.ts`). Override with `BASE_PATH=/` for
-root hosting.
+The base path is derived from the repository name via `GITHUB_REPOSITORY`
+(`vite.config.ts`), so **renaming the repository is safe** — the next build picks up the
+new path on its own. Local builds have no prefix and serve from `/`. Set `BASE_PATH`
+explicitly to override either.
 
 ## Storage and sync
 

@@ -16,7 +16,9 @@ import { buildFixture } from './fixture.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const outDir = resolve(root, 'screenshots')
-const BASE = process.env.PREVIEW_URL ?? 'http://localhost:4173/workout-prep/'
+// Local builds have no repo-name prefix (see vite.config.ts), so preview serves
+// at the root. Override for a build made with an explicit BASE_PATH.
+const BASE = process.env.PREVIEW_URL ?? 'http://localhost:4173/'
 
 const IPHONE = { width: 393, height: 852 } // iPhone 15 Pro
 const MAC = { width: 1440, height: 900 }
