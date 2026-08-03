@@ -1,0 +1,245 @@
+/*
+ * iOS design tokens.
+ *
+ * Values are taken from Apple's semantic system colors and the iOS type scale
+ * rather than invented. Anything that looks like a magic number here is a
+ * platform constant — 44pt touch targets, 49pt tab bar, the 0.29 separator
+ * alpha — and should not be "cleaned up".
+ */
+
+:root {
+  /* ---- Type -------------------------------------------------------------
+   * SF Pro, resolved by -apple-system on Apple platforms. Sizes are in rem
+   * (1rem = 16px) so browser text scaling and Dynamic Type still work.
+   * Letter-spacing values are Apple's optical tracking per size.
+   */
+  --font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display',
+    'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-family-rounded: ui-rounded, 'SF Pro Rounded', var(--font-family);
+  --font-family-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
+
+  --text-large-title: 700 2.125rem / 2.5625rem var(--font-family); /* 34/41 */
+  --text-large-title-tracking: 0.374px;
+
+  --text-title1: 400 1.75rem / 2.125rem var(--font-family); /* 28/34 */
+  --text-title1-tracking: 0.364px;
+
+  --text-title2: 400 1.375rem / 1.75rem var(--font-family); /* 22/28 */
+  --text-title2-tracking: 0.352px;
+
+  --text-title3: 400 1.25rem / 1.5625rem var(--font-family); /* 20/25 */
+  --text-title3-tracking: 0.38px;
+
+  --text-headline: 600 1.0625rem / 1.375rem var(--font-family); /* 17/22 semibold */
+  --text-headline-tracking: -0.408px;
+
+  --text-body: 400 1.0625rem / 1.375rem var(--font-family); /* 17/22 */
+  --text-body-tracking: -0.408px;
+
+  --text-callout: 400 1rem / 1.3125rem var(--font-family); /* 16/21 */
+  --text-callout-tracking: -0.32px;
+
+  --text-subhead: 400 0.9375rem / 1.25rem var(--font-family); /* 15/20 */
+  --text-subhead-tracking: -0.24px;
+
+  --text-footnote: 400 0.8125rem / 1.125rem var(--font-family); /* 13/18 */
+  --text-footnote-tracking: -0.078px;
+
+  --text-caption1: 400 0.75rem / 1rem var(--font-family); /* 12/16 */
+  --text-caption1-tracking: 0px;
+
+  --text-caption2: 400 0.6875rem / 0.8125rem var(--font-family); /* 11/13 */
+  --text-caption2-tracking: 0.066px;
+
+  /* ---- Metrics ---------------------------------------------------------- */
+  --nav-bar-height: 44px;
+  --nav-large-title-height: 52px;
+  --tab-bar-height: 49px;
+  --touch-target: 44px; /* HIG minimum. Never go below this. */
+  --list-inset: 16px;
+  --list-radius: 10px;
+  --card-radius: 16px;
+  --sheet-radius: 12px;
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+
+  /* ---- Motion -----------------------------------------------------------
+   * The iOS sheet/push curve. Decelerates hard at the end, which is what
+   * makes native transitions feel "caught" rather than eased.
+   */
+  --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration-sheet: 420ms;
+  --duration-push: 280ms;
+  --duration-fade: 200ms;
+
+  /* ---- Material ---------------------------------------------------------
+   * Nav bars, tab bars and sheets sit on a blurred, saturated backdrop.
+   * The saturation boost is what stops it reading as a plain grey overlay.
+   */
+  --material-blur: saturate(180%) blur(20px);
+  --material-blur-thick: saturate(180%) blur(30px);
+}
+
+/* ---- Light scheme -------------------------------------------------------- */
+:root,
+:root[data-scheme='light'] {
+  color-scheme: light;
+
+  --bg: #ffffff;
+  --bg-secondary: #f2f2f7;
+  --bg-tertiary: #ffffff;
+
+  --bg-grouped: #f2f2f7;
+  --bg-grouped-secondary: #ffffff;
+  --bg-grouped-tertiary: #f2f2f7;
+
+  --label: #000000;
+  --label-secondary: rgba(60, 60, 67, 0.6);
+  --label-tertiary: rgba(60, 60, 67, 0.3);
+  --label-quaternary: rgba(60, 60, 67, 0.18);
+
+  --separator: rgba(60, 60, 67, 0.29);
+  --separator-opaque: #c6c6c8;
+
+  --fill: rgba(120, 120, 128, 0.2);
+  --fill-secondary: rgba(120, 120, 128, 0.16);
+  --fill-tertiary: rgba(118, 118, 128, 0.12);
+  --fill-quaternary: rgba(116, 116, 128, 0.08);
+
+  --blue: #007aff;
+  --green: #34c759;
+  --indigo: #5856d6;
+  --orange: #ff9500;
+  --red: #ff3b30;
+  --teal: #30b0c7;
+  --cyan: #32ade6;
+  --purple: #af52de;
+  --pink: #ff2d55;
+  --yellow: #ffcc00;
+  --mint: #00c7be;
+  --brown: #a2845e;
+  --gray: #8e8e93;
+
+  --material: rgba(249, 249, 249, 0.82);
+  --material-thick: rgba(255, 255, 255, 0.94);
+  --scrim: rgba(0, 0, 0, 0.28);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 6px 20px rgba(0, 0, 0, 0.05);
+  --shadow-raised: 0 4px 12px rgba(0, 0, 0, 0.1), 0 12px 32px rgba(0, 0, 0, 0.09);
+}
+
+/* ---- Dark scheme ---------------------------------------------------------
+ * Grouped backgrounds go pure black and the cards lift to #1C1C1E — the
+ * inverse of light mode, which is why the tokens are split this way.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-scheme='light']) {
+    color-scheme: dark;
+
+    --bg: #000000;
+    --bg-secondary: #1c1c1e;
+    --bg-tertiary: #2c2c2e;
+
+    --bg-grouped: #000000;
+    --bg-grouped-secondary: #1c1c1e;
+    --bg-grouped-tertiary: #2c2c2e;
+
+    --label: #ffffff;
+    --label-secondary: rgba(235, 235, 245, 0.6);
+    --label-tertiary: rgba(235, 235, 245, 0.3);
+    --label-quaternary: rgba(235, 235, 245, 0.18);
+
+    --separator: rgba(84, 84, 88, 0.65);
+    --separator-opaque: #38383a;
+
+    --fill: rgba(120, 120, 128, 0.36);
+    --fill-secondary: rgba(120, 120, 128, 0.32);
+    --fill-tertiary: rgba(118, 118, 128, 0.24);
+    --fill-quaternary: rgba(116, 116, 128, 0.18);
+
+    --blue: #0a84ff;
+    --green: #30d158;
+    --indigo: #5e5ce6;
+    --orange: #ff9f0a;
+    --red: #ff453a;
+    --teal: #40cbe0;
+    --cyan: #64d2ff;
+    --purple: #bf5af2;
+    --pink: #ff375f;
+    --yellow: #ffd60a;
+    --mint: #66d4cf;
+    --brown: #ac8e68;
+    --gray: #8e8e93;
+
+    --material: rgba(30, 30, 30, 0.78);
+    --material-thick: rgba(37, 37, 37, 0.92);
+    --scrim: rgba(0, 0, 0, 0.5);
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 6px 20px rgba(0, 0, 0, 0.3);
+    --shadow-raised: 0 4px 12px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Explicit dark override, for the appearance setting. Duplicated rather than
+   shared because CSS can't OR a media query with an attribute selector. */
+:root[data-scheme='dark'] {
+  color-scheme: dark;
+
+  --bg: #000000;
+  --bg-secondary: #1c1c1e;
+  --bg-tertiary: #2c2c2e;
+
+  --bg-grouped: #000000;
+  --bg-grouped-secondary: #1c1c1e;
+  --bg-grouped-tertiary: #2c2c2e;
+
+  --label: #ffffff;
+  --label-secondary: rgba(235, 235, 245, 0.6);
+  --label-tertiary: rgba(235, 235, 245, 0.3);
+  --label-quaternary: rgba(235, 235, 245, 0.18);
+
+  --separator: rgba(84, 84, 88, 0.65);
+  --separator-opaque: #38383a;
+
+  --fill: rgba(120, 120, 128, 0.36);
+  --fill-secondary: rgba(120, 120, 128, 0.32);
+  --fill-tertiary: rgba(118, 118, 128, 0.24);
+  --fill-quaternary: rgba(116, 116, 128, 0.18);
+
+  --blue: #0a84ff;
+  --green: #30d158;
+  --indigo: #5e5ce6;
+  --orange: #ff9f0a;
+  --red: #ff453a;
+  --teal: #40cbe0;
+  --cyan: #64d2ff;
+  --purple: #bf5af2;
+  --pink: #ff375f;
+  --yellow: #ffd60a;
+  --mint: #66d4cf;
+  --brown: #ac8e68;
+  --gray: #8e8e93;
+
+  --material: rgba(30, 30, 30, 0.78);
+  --material-thick: rgba(37, 37, 37, 0.92);
+  --scrim: rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 6px 20px rgba(0, 0, 0, 0.3);
+  --shadow-raised: 0 4px 12px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* ---- Domain accents ------------------------------------------------------
+ * One colour per split, held constant everywhere it appears so the badge on a
+ * history card and the header on the planning screen read as the same thing.
+ */
+:root {
+  --split-push: var(--indigo);
+  --split-pull: var(--blue);
+  --split-legs: var(--orange);
+  --split-other: var(--gray);
+
+  --accent-heat: var(--orange);
+  --accent-cold: var(--cyan);
+  --accent-body: var(--purple);
+  --accent-mobility: var(--green);
+}

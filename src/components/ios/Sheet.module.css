@@ -1,0 +1,138 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--scrim);
+  opacity: 0;
+  transition: opacity var(--duration-sheet) var(--ease-ios);
+}
+
+.backdropOpen {
+  opacity: 1;
+}
+
+.container {
+  position: fixed;
+  inset: 0;
+  z-index: 101;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.sheet {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  /* Full-height presentation stops just short of the top, the way a
+     large-detent iOS sheet leaves the parent visible behind it. */
+  height: calc(100% - var(--safe-top) - 10px);
+  background: var(--bg-grouped);
+  border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+  box-shadow: var(--shadow-raised);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+  transform: translateY(100%);
+  transition: transform var(--duration-sheet) var(--ease-ios);
+  will-change: transform;
+}
+
+.sheetOpen {
+  transform: translateY(0);
+}
+
+/* While a finger is down, position is driven directly and must not lag. */
+.sheetDragging {
+  transition: none;
+}
+
+.grabber {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--label-quaternary);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.header {
+  position: relative;
+  flex: none;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--list-inset);
+  gap: 8px;
+  background: var(--bg-grouped);
+  border-bottom: 0.5px solid var(--separator);
+  /* The whole header is the drag handle, so text selection would fight it. */
+  touch-action: none;
+}
+
+.headerBare {
+  border-bottom-color: transparent;
+}
+
+.title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font: var(--text-headline);
+  letter-spacing: var(--text-headline-tracking);
+  color: var(--label);
+  white-space: nowrap;
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.action {
+  min-width: var(--touch-target);
+  height: var(--touch-target);
+  display: inline-flex;
+  align-items: center;
+  color: var(--blue);
+  font: var(--text-body);
+  letter-spacing: var(--text-body-tracking);
+  z-index: 1;
+}
+
+.actionLeading {
+  margin-left: -8px;
+}
+
+.actionTrailing {
+  margin-left: auto;
+  margin-right: -8px;
+  justify-content: flex-end;
+  font: var(--text-headline);
+  letter-spacing: var(--text-headline-tracking);
+}
+
+.action:active {
+  opacity: 0.3;
+}
+
+.actionDisabled {
+  color: var(--label-tertiary);
+  pointer-events: none;
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  padding-top: 20px;
+  padding-bottom: calc(var(--safe-bottom) + 32px);
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+}

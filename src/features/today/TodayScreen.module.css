@@ -1,0 +1,230 @@
+.card {
+  margin: 0 var(--list-inset) 34px;
+  padding: 16px 18px;
+  border-radius: var(--card-radius);
+  background: var(--bg-grouped-secondary);
+  box-shadow: var(--shadow-card);
+  display: block;
+  width: calc(100% - var(--list-inset) * 2);
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+  transition: transform 160ms var(--ease-ios);
+}
+
+.cardTappable:active {
+  transform: scale(0.985);
+}
+
+/* Split colour as a spine down the leading edge, so a glance at the card
+   tells you which day it is before you read anything. */
+.card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--split-color, transparent);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.cardTitle {
+  font: var(--text-title2);
+  letter-spacing: var(--text-title2-tracking);
+  font-weight: 700;
+  color: var(--label);
+}
+
+.cardWhen {
+  font: var(--text-subhead);
+  letter-spacing: var(--text-subhead-tracking);
+  color: var(--label-secondary);
+  margin-bottom: 12px;
+}
+
+.cardIntent {
+  font: var(--text-subhead);
+  letter-spacing: var(--text-subhead-tracking);
+  color: var(--label-secondary);
+  line-height: 1.4;
+  margin-bottom: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--fill-tertiary);
+  font: var(--text-footnote);
+  letter-spacing: var(--text-footnote-tracking);
+  color: var(--label);
+}
+
+.chipMuted {
+  color: var(--label-tertiary);
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.progressTrack {
+  display: block;
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--fill-tertiary);
+  overflow: hidden;
+}
+
+/* Block, not the span default: width/height do not apply to inline boxes. */
+.progressFill {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--split-color, var(--blue));
+  transition: width 320ms var(--ease-ios);
+}
+
+.progressLabel {
+  font: var(--text-footnote);
+  letter-spacing: var(--text-footnote-tracking);
+  color: var(--label-secondary);
+  flex: none;
+}
+
+/* ---- Start block ----------------------------------------------------------- */
+
+.start {
+  margin: 0 var(--list-inset) 34px;
+  padding: 22px 20px 20px;
+  border-radius: var(--card-radius);
+  background: var(--bg-grouped-secondary);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+}
+
+.startTitle {
+  font: var(--text-title3);
+  letter-spacing: var(--text-title3-tracking);
+  font-weight: 600;
+  color: var(--label);
+  margin-bottom: 5px;
+}
+
+.startMessage {
+  font: var(--text-subhead);
+  letter-spacing: var(--text-subhead-tracking);
+  color: var(--label-secondary);
+  line-height: 1.45;
+  margin: 0 auto 18px;
+  max-width: 34ch;
+}
+
+.startActions {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+/* ---- Stale rail ------------------------------------------------------------ */
+
+.railHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 var(--list-inset) 10px;
+}
+
+.railTitle {
+  font: var(--text-title3);
+  letter-spacing: var(--text-title3-tracking);
+  font-weight: 700;
+  color: var(--label);
+}
+
+.railAction {
+  font: var(--text-subhead);
+  letter-spacing: var(--text-subhead-tracking);
+  color: var(--blue);
+  flex: none;
+}
+
+.railBlurb {
+  padding: 0 var(--list-inset) 12px;
+  font: var(--text-footnote);
+  letter-spacing: var(--text-footnote-tracking);
+  color: var(--label-secondary);
+}
+
+.rail {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px var(--list-inset) 34px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+.staleCard {
+  flex: none;
+  width: 150px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  background: var(--bg-grouped-secondary);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  text-align: left;
+  transition: transform 160ms var(--ease-ios);
+}
+
+.staleCard:active {
+  transform: scale(0.96);
+}
+
+.staleName {
+  font: var(--text-callout);
+  letter-spacing: var(--text-callout-tracking);
+  font-weight: 600;
+  color: var(--label);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.6em;
+}
+
+.staleMeta {
+  font: var(--text-caption1);
+  letter-spacing: var(--text-caption1-tracking);
+  color: var(--label-tertiary);
+}
