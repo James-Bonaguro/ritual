@@ -37,9 +37,9 @@ jobs:
           path: dist
 
   deploy:
-    # Pull requests get the build and tests but must not publish over the
-    # live site.
-    if: github.event_name != 'pull_request'
+    # Only main publishes. Feature branches and pull requests get the build and
+    # tests, but must never overwrite the live site with in-progress work.
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: build
     runs-on: ubuntu-latest
 
