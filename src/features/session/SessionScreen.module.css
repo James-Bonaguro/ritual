@@ -1,0 +1,228 @@
+.splitRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 0 var(--list-inset) 24px;
+}
+
+.splitCard {
+  padding: 12px 6px;
+  border-radius: 12px;
+  background: var(--bg-grouped-secondary);
+  border: 1.5px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  transition:
+    border-color 140ms linear,
+    transform 140ms var(--ease-ios);
+}
+
+.splitCard:active {
+  transform: scale(0.95);
+}
+
+.splitCardActive {
+  border-color: var(--split-color);
+  background: color-mix(in srgb, var(--split-color) 10%, var(--bg-grouped-secondary));
+}
+
+.splitDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--split-color);
+}
+
+.splitName {
+  font: var(--text-footnote);
+  letter-spacing: var(--text-footnote-tracking);
+  font-weight: 600;
+  color: var(--label);
+}
+
+/* ---- Flow steps ------------------------------------------------------------ */
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px var(--list-inset);
+  position: relative;
+  text-align: left;
+}
+
+.step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--list-inset) + 38px);
+  right: 0;
+  bottom: 0;
+  height: 0.5px;
+  background: var(--separator);
+}
+
+.stepGlyph {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: var(--step-tint);
+  flex: none;
+  transition: opacity 160ms linear;
+}
+
+.stepGlyphIdle {
+  opacity: 0.34;
+}
+
+.stepBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.stepLabel {
+  font: var(--text-body);
+  letter-spacing: var(--text-body-tracking);
+  color: var(--label);
+  transition: color 160ms linear;
+}
+
+.stepLabelIdle {
+  color: var(--label-secondary);
+}
+
+.minutes {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex: none;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: var(--fill-quaternary);
+  color: var(--label-secondary);
+  font: var(--text-footnote);
+  letter-spacing: var(--text-footnote-tracking);
+}
+
+.minutesInput {
+  width: 28px;
+  text-align: right;
+  font: var(--text-footnote);
+  letter-spacing: var(--text-footnote-tracking);
+  color: var(--label);
+}
+
+/* ---- Movements ------------------------------------------------------------- */
+
+.movement {
+  position: relative;
+  padding: 8px var(--list-inset);
+}
+
+.movement:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--list-inset) + 38px);
+  right: 0;
+  bottom: 0;
+  height: 0.5px;
+  background: var(--separator);
+}
+
+.movementMain {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 38px;
+}
+
+.movementLabel {
+  flex: 1;
+  min-width: 0;
+  font: var(--text-body);
+  letter-spacing: var(--text-body-tracking);
+  color: var(--label);
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 160ms linear;
+}
+
+.movementLabelIdle {
+  color: var(--label-secondary);
+}
+
+.plannedTag {
+  font: var(--text-caption2);
+  letter-spacing: var(--text-caption2-tracking);
+  color: var(--label-tertiary);
+  flex: none;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.noteButton {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--label-tertiary);
+}
+
+.noteButtonActive {
+  color: var(--blue);
+}
+
+.noteField {
+  padding: 2px 0 8px 38px;
+}
+
+.noteInput {
+  font: var(--text-subhead);
+  letter-spacing: var(--text-subhead-tracking);
+  color: var(--label-secondary);
+  line-height: 1.4;
+  resize: none;
+  width: 100%;
+}
+
+.noteText {
+  padding: 0 0 8px 38px;
+  font: var(--text-subhead);
+  letter-spacing: var(--text-subhead-tracking);
+  color: var(--label-secondary);
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+/* ---- Footer ---------------------------------------------------------------- */
+
+.actions {
+  padding: 4px var(--list-inset) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.intentArea {
+  padding: 12px var(--list-inset);
+}
+
+.intentInput {
+  font: var(--text-body);
+  letter-spacing: var(--text-body-tracking);
+  line-height: 1.45;
+  resize: none;
+  min-height: 66px;
+}

@@ -1,0 +1,281 @@
+/* ---- Segmented control ---------------------------------------------------- */
+
+.segmented {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 0;
+  padding: 2px;
+  background: var(--fill-tertiary);
+  border-radius: 9px;
+  margin: 0 var(--list-inset) 20px;
+  isolation: isolate;
+}
+
+/* The thumb is a single sliding element rather than a per-segment background,
+   so switching segments reads as one object moving. */
+.thumb {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  border-radius: 7px;
+  background: var(--bg-grouped-secondary);
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.12),
+    0 1px 1px rgba(0, 0, 0, 0.04);
+  transition:
+    transform var(--duration-push) var(--ease-ios),
+    width var(--duration-push) var(--ease-ios);
+  z-index: 0;
+}
+
+.segment {
+  position: relative;
+  z-index: 1;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: var(--text-subhead);
+  letter-spacing: var(--text-subhead-tracking);
+  font-weight: 500;
+  color: var(--label);
+  border-radius: 7px;
+  transition: opacity 120ms linear;
+  white-space: nowrap;
+}
+
+.segmentActive {
+  font-weight: 600;
+}
+
+.segment:active {
+  opacity: 0.5;
+}
+
+/* Divider between unselected segments, hidden either side of the thumb. */
+.divider {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: var(--separator);
+  z-index: 0;
+  transition: opacity 120ms linear;
+}
+
+.dividerHidden {
+  opacity: 0;
+}
+
+/* ---- Buttons -------------------------------------------------------------- */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 50px;
+  padding: 0 20px;
+  border-radius: 14px;
+  font: var(--text-headline);
+  letter-spacing: var(--text-headline-tracking);
+  transition:
+    transform 120ms var(--ease-ios),
+    opacity 120ms linear,
+    background-color 120ms linear;
+}
+
+.buttonBlock {
+  width: 100%;
+}
+
+/* Scaling down on press is the tactile substitute for the haptic we can't
+   fire — iOS Safari has no Vibration API. */
+.button:active {
+  transform: scale(0.97);
+}
+
+.filled {
+  background: var(--blue);
+  color: #fff;
+}
+
+.filled:active {
+  background: color-mix(in srgb, var(--blue) 84%, black);
+}
+
+.tinted {
+  background: color-mix(in srgb, var(--blue) 15%, transparent);
+  color: var(--blue);
+}
+
+.tinted:active {
+  background: color-mix(in srgb, var(--blue) 26%, transparent);
+}
+
+.gray {
+  background: var(--fill-tertiary);
+  color: var(--label);
+}
+
+.gray:active {
+  background: var(--fill-secondary);
+}
+
+.plain {
+  background: none;
+  color: var(--blue);
+  min-height: var(--touch-target);
+  padding: 0 8px;
+}
+
+.plain:active {
+  opacity: 0.4;
+  transform: none;
+}
+
+.destructiveButton {
+  color: var(--red);
+}
+
+.filled.destructiveButton {
+  background: var(--red);
+  color: #fff;
+}
+
+.buttonDisabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.buttonSmall {
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font: var(--text-subhead);
+  letter-spacing: var(--text-subhead-tracking);
+  font-weight: 600;
+}
+
+/* ---- Checkbox ------------------------------------------------------------- */
+
+.checkbox {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.8px solid var(--label-quaternary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  color: transparent;
+  background: transparent;
+  transition:
+    background-color 160ms var(--ease-ios),
+    border-color 160ms var(--ease-ios),
+    color 160ms var(--ease-ios),
+    transform 160ms var(--ease-ios);
+}
+
+.checkboxChecked {
+  background: var(--tint, var(--blue));
+  border-color: var(--tint, var(--blue));
+  color: #fff;
+}
+
+.checkboxHit {
+  /* The visual circle is 26px but the tap area must clear 44pt. */
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: -9px;
+  flex: none;
+}
+
+.checkboxHit:active .checkbox {
+  transform: scale(0.88);
+}
+
+/* ---- Text fields ---------------------------------------------------------- */
+
+.field {
+  padding: 11px var(--list-inset);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--touch-target);
+}
+
+.fieldInput {
+  flex: 1;
+  min-width: 0;
+}
+
+.textarea {
+  padding: 12px var(--list-inset);
+  resize: none;
+  min-height: 88px;
+  line-height: 1.4;
+  font: var(--text-body);
+  letter-spacing: var(--text-body-tracking);
+}
+
+.searchField {
+  margin: 0 var(--list-inset) 16px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--fill-tertiary);
+  border-radius: 10px;
+  color: var(--label-secondary);
+  min-height: 36px;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  font: var(--text-body);
+  letter-spacing: var(--text-body-tracking);
+}
+
+/* ---- Empty state ---------------------------------------------------------- */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 56px 40px;
+  gap: 8px;
+}
+
+.emptyGlyph {
+  color: var(--label-quaternary);
+  margin-bottom: 8px;
+}
+
+.emptyTitle {
+  font: var(--text-title3);
+  letter-spacing: var(--text-title3-tracking);
+  font-weight: 600;
+  color: var(--label);
+}
+
+.emptyMessage {
+  font: var(--text-subhead);
+  letter-spacing: var(--text-subhead-tracking);
+  color: var(--label-secondary);
+  max-width: 30ch;
+  line-height: 1.45;
+}
+
+.emptyAction {
+  margin-top: 14px;
+}

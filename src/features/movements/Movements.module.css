@@ -1,0 +1,203 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px var(--list-inset);
+  position: relative;
+  text-align: left;
+  transition: background-color 100ms linear;
+}
+
+.row:active {
+  background: var(--fill-quaternary);
+}
+
+.row:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: var(--list-inset);
+  right: 0;
+  bottom: 0;
+  height: 0.5px;
+  background: var(--separator);
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.name {
+  font: var(--text-body);
+  letter-spacing: var(--text-body-tracking);
+  color: var(--label);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  font: var(--text-footnote);
+  letter-spacing: var(--text-footnote-tracking);
+  color: var(--label-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Thin bar showing how long since, capped at 60 days so one forgotten
+   movement doesn't flatten every other bar to nothing. */
+.gauge {
+  display: block;
+  width: 44px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--fill-tertiary);
+  overflow: hidden;
+  flex: none;
+}
+
+/* Must be block: a span defaults to inline, and width/height are ignored on
+   inline boxes, which silently collapses the fill to nothing. */
+.gaugeFill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--gauge-color);
+}
+
+/* ---- Detail ---------------------------------------------------------------- */
+
+.hero {
+  padding: 0 var(--list-inset) 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.heroStats {
+  display: flex;
+  gap: 28px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statValue {
+  font: var(--text-title2);
+  letter-spacing: var(--text-title2-tracking);
+  font-weight: 700;
+  color: var(--label);
+}
+
+.statLabel {
+  font: var(--text-caption1);
+  letter-spacing: var(--text-caption1-tracking);
+  color: var(--label-secondary);
+  text-transform: uppercase;
+}
+
+/* ---- Frequency sparkline --------------------------------------------------- */
+
+.spark {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 46px;
+  padding: 14px var(--list-inset) 6px;
+}
+
+.sparkBar {
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  background: var(--fill);
+  min-height: 2px;
+}
+
+.sparkBarOn {
+  background: var(--blue);
+}
+
+.sparkAxis {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 var(--list-inset) 4px;
+  font: var(--text-caption2);
+  letter-spacing: var(--text-caption2-tracking);
+  color: var(--label-tertiary);
+}
+
+/* ---- Note history ---------------------------------------------------------- */
+
+.noteEntry {
+  padding: 11px var(--list-inset);
+  position: relative;
+}
+
+.noteEntry:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: var(--list-inset);
+  right: 0;
+  bottom: 0;
+  height: 0.5px;
+  background: var(--separator);
+}
+
+.noteWhen {
+  font: var(--text-footnote);
+  letter-spacing: var(--text-footnote-tracking);
+  color: var(--label-secondary);
+  margin-bottom: 3px;
+}
+
+.noteBody {
+  font: var(--text-body);
+  letter-spacing: var(--text-body-tracking);
+  color: var(--label);
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+.areaEditGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px var(--list-inset);
+}
+
+.areaToggle {
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: var(--fill-tertiary);
+  color: var(--label);
+  font: var(--text-subhead);
+  letter-spacing: var(--text-subhead-tracking);
+  transition:
+    background-color 140ms linear,
+    color 140ms linear,
+    transform 140ms var(--ease-ios);
+}
+
+.areaToggle:active {
+  transform: scale(0.94);
+}
+
+.areaToggleOn {
+  background: var(--blue);
+  color: #fff;
+  font-weight: 600;
+}
+
+.actions {
+  padding: 4px var(--list-inset) 0;
+}

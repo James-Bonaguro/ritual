@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5E5CE6" />
+      <stop offset="1" stop-color="#0A84FF" />
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="114" fill="url(#bg)" />
+
+  <!-- Three ascending marks: the visit as a sequence, and the log as a list. -->
+  <g fill="none" stroke="#fff" stroke-linecap="round" stroke-width="30">
+    <path d="M150 178h122" opacity="0.55" />
+    <path d="M150 256h212" />
+    <path d="M150 334h162" opacity="0.78" />
+  </g>
+  <g fill="#fff">
+    <circle cx="392" cy="178" r="17" opacity="0.55" />
+    <circle cx="392" cy="334" r="17" opacity="0.78" />
+  </g>
+</svg>

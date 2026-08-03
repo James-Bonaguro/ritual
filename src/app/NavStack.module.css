@@ -1,0 +1,47 @@
+.host {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-grouped);
+  transition: transform var(--duration-push) var(--ease-ios);
+  will-change: transform;
+}
+
+/* The screen underneath slides a quarter of the way out and sits behind an
+   edge shadow — the UIKit push parallax. Without it a push reads as a
+   cross-fade and immediately feels like a website. */
+.layerBelow {
+  transform: translateX(-25%);
+}
+
+.layerBelow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--scrim);
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.layerTop {
+  transform: translateX(0);
+  box-shadow: -2px 0 18px rgba(0, 0, 0, 0.16);
+}
+
+/* Root screen of a tab never animates and casts no edge shadow. */
+.layerRoot {
+  box-shadow: none;
+}
+
+.layerEntering {
+  transform: translateX(100%);
+}
+
+.layerExiting {
+  transform: translateX(100%);
+}

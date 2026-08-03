@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <!-- viewport-fit=cover lets the app paint under the notch and home indicator;
+         every edge is then held off by env(safe-area-inset-*) in CSS. -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"
+    />
+
+    <title>Ritual</title>
+    <meta name="description" content="A journal for the whole gym visit." />
+
+    <!-- Standalone home-screen app: no Safari chrome, own icon. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Ritual" />
+    <!-- black-translucent puts our own background behind the status bar. -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- Matches the nav bar material in each scheme so the status bar blends in. -->
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F2F2F7" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
+    <meta name="color-scheme" content="light dark" />
+
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png" />
+    <link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
+
+    <!-- Paint the correct background before React mounts, so there is no
+         white flash on a dark-mode cold start. -->
+    <style>
+      html {
+        background: #f2f2f7;
+      }
+      @media (prefers-color-scheme: dark) {
+        html {
+          background: #000;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

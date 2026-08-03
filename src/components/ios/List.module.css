@@ -1,0 +1,151 @@
+/* Inset grouped list — UITableView .insetGrouped. */
+
+.section {
+  margin: 0 var(--list-inset) 34px;
+}
+
+.sectionTight {
+  margin-bottom: 20px;
+}
+
+.header {
+  padding: 0 var(--list-inset) 7px;
+  font: var(--text-footnote);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--label-secondary);
+}
+
+.footer {
+  padding: 7px var(--list-inset) 0;
+  font: var(--text-footnote);
+  letter-spacing: var(--text-footnote-tracking);
+  color: var(--label-secondary);
+}
+
+.group {
+  background: var(--bg-grouped-secondary);
+  border-radius: var(--list-radius);
+  overflow: hidden;
+  /* Separator origin, overridden per-group when rows have leading icons. */
+  --separator-inset: var(--list-inset);
+}
+
+.groupPlain {
+  background: none;
+  border-radius: 0;
+}
+
+/* ---- Row ------------------------------------------------------------------ */
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: 11px var(--list-inset);
+  text-align: left;
+  color: var(--label);
+  background: transparent;
+  transition: background-color 100ms linear;
+}
+
+/* Hairline separator, inset to the text origin rather than full-bleed —
+   the detail that most reliably separates a real iOS list from a fake one. */
+.row:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: var(--separator-inset);
+  right: 0;
+  bottom: 0;
+  height: 0.5px;
+  background: var(--separator);
+}
+
+.rowTappable:active {
+  background: var(--fill-quaternary);
+}
+
+.rowLeading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  color: var(--label-secondary);
+}
+
+/* Rounded-square glyph tile, the Settings.app treatment. */
+.rowIconTile {
+  width: 29px;
+  height: 29px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex: none;
+}
+
+.rowBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rowTitle {
+  font: var(--text-body);
+  letter-spacing: var(--text-body-tracking);
+  color: var(--label);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowTitleWrap {
+  white-space: normal;
+}
+
+.rowSubtitle {
+  font: var(--text-footnote);
+  letter-spacing: var(--text-footnote-tracking);
+  color: var(--label-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rowValue {
+  font: var(--text-body);
+  letter-spacing: var(--text-body-tracking);
+  color: var(--label-secondary);
+  flex: none;
+  white-space: nowrap;
+}
+
+.rowTrailing {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+
+.chevron {
+  color: var(--label-tertiary);
+  flex: none;
+}
+
+.destructive .rowTitle {
+  color: var(--red);
+}
+
+.centered {
+  justify-content: center;
+}
+
+.centered .rowTitle {
+  color: var(--blue);
+  text-align: center;
+}

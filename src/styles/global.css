@@ -1,0 +1,185 @@
+@import './tokens.css';
+
+/* ---- Reset ---------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+html {
+  /* Stops iOS from inflating text in landscape. */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font: var(--text-body);
+  letter-spacing: var(--text-body-tracking);
+  color: var(--label);
+  background: var(--bg-grouped);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Native-feel touch behaviour: no blue flash on tap, no 300ms delay,
+     no browser pull-to-refresh stealing a scroll that belongs to a list. */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  overscroll-behavior-y: contain;
+
+  /* Chrome is not selectable; prose and note fields opt back in below. */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#root {
+  height: 100%;
+  isolation: isolate;
+}
+
+/* Notes and anything the user typed must stay selectable and copyable. */
+input,
+textarea,
+[data-selectable] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+button {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+textarea {
+  font: var(--text-body);
+  letter-spacing: var(--text-body-tracking);
+  color: var(--label);
+  background: none;
+  border: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  /* 17px is at or above the 16px threshold that stops iOS zooming on focus. */
+  appearance: none;
+  border-radius: 0;
+}
+
+input:focus,
+textarea:focus,
+button:focus {
+  outline: none;
+}
+
+/* Keyboard users still get a ring; pointer/touch users never see one. */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--label-tertiary);
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+  font-weight: inherit;
+  font-size: inherit;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+svg {
+  display: block;
+  flex: none;
+}
+
+/* ---- Type helpers --------------------------------------------------------- */
+
+.t-large-title {
+  font: var(--text-large-title);
+  letter-spacing: var(--text-large-title-tracking);
+}
+.t-title1 {
+  font: var(--text-title1);
+  letter-spacing: var(--text-title1-tracking);
+}
+.t-title2 {
+  font: var(--text-title2);
+  letter-spacing: var(--text-title2-tracking);
+}
+.t-title3 {
+  font: var(--text-title3);
+  letter-spacing: var(--text-title3-tracking);
+}
+.t-headline {
+  font: var(--text-headline);
+  letter-spacing: var(--text-headline-tracking);
+}
+.t-body {
+  font: var(--text-body);
+  letter-spacing: var(--text-body-tracking);
+}
+.t-callout {
+  font: var(--text-callout);
+  letter-spacing: var(--text-callout-tracking);
+}
+.t-subhead {
+  font: var(--text-subhead);
+  letter-spacing: var(--text-subhead-tracking);
+}
+.t-footnote {
+  font: var(--text-footnote);
+  letter-spacing: var(--text-footnote-tracking);
+}
+.t-caption1 {
+  font: var(--text-caption1);
+  letter-spacing: var(--text-caption1-tracking);
+}
+.t-caption2 {
+  font: var(--text-caption2);
+  letter-spacing: var(--text-caption2-tracking);
+}
+
+/* ---- Reduced motion -------------------------------------------------------
+ * Transitions collapse to near-zero rather than 0s: a true 0s duration makes
+ * transitionend never fire, which strands components that wait on it.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

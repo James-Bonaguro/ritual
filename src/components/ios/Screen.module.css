@@ -1,0 +1,187 @@
+.screen {
+  position: relative;
+  height: 100%;
+  background: var(--bg-grouped);
+  /* Capped and centred on wide displays so a 1440px window doesn't stretch
+     list rows to unreadable line lengths. */
+  max-width: 860px;
+  margin: 0 auto;
+  /* Driven imperatively from the scroll handler: 0 at rest, 1 once the large
+     title has scrolled under the bar. Kept as a CSS var so scrolling never
+     triggers a React render. */
+  --nav-progress: 0;
+}
+
+/* ---- Nav bar -------------------------------------------------------------- */
+
+.navBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  height: calc(var(--safe-top) + var(--nav-bar-height));
+  padding-top: var(--safe-top);
+  padding-left: max(var(--list-inset), var(--safe-left));
+  padding-right: max(var(--list-inset), var(--safe-right));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The material is a pseudo-element so it can fade independently of the
+   buttons, which stay fully opaque at all scroll positions. */
+.navBar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--material);
+  backdrop-filter: var(--material-blur);
+  -webkit-backdrop-filter: var(--material-blur);
+  opacity: var(--nav-progress);
+  transition: opacity 120ms linear;
+  pointer-events: none;
+}
+
+/* Hairline. 0.5px so it stays sub-pixel on retina, as iOS does it. */
+.navBar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0.5px;
+  background: var(--separator);
+  opacity: var(--nav-progress);
+  transition: opacity 120ms linear;
+  pointer-events: none;
+}
+
+.navSlot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+.navSlotLeading {
+  justify-content: flex-start;
+}
+
+.navSlotTrailing {
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+/* Inline title. Absolutely centred so it stays optically centred regardless
+   of how wide the leading/trailing buttons are — same as UIKit. */
+.inlineTitle {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) translateY(calc((1 - var(--nav-progress)) * 6px));
+  top: var(--safe-top);
+  height: var(--nav-bar-height);
+  display: flex;
+  align-items: center;
+  z-index: 0;
+  font: var(--text-headline);
+  letter-spacing: var(--text-headline-tracking);
+  color: var(--label);
+  opacity: var(--nav-progress);
+  transition:
+    opacity 120ms linear,
+    transform 120ms linear;
+  white-space: nowrap;
+  max-width: 58%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+/* When there is no large title to collapse, the inline title is just always
+   there and the bar is always opaque. */
+.staticBar {
+  --nav-progress: 1;
+}
+
+.staticBar .inlineTitle {
+  opacity: 1;
+  transform: translateX(-50%);
+}
+
+/* ---- Scroll area ---------------------------------------------------------- */
+
+.scroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  padding-top: calc(var(--safe-top) + var(--nav-bar-height));
+  /* Content clears the tab bar; --tab-bar-inset is set by the app shell so
+     screens don't need to know whether it's a tab bar or a sidebar. */
+  padding-bottom: calc(var(--tab-bar-inset, 0px) + 24px);
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+}
+
+.largeTitleBlock {
+  padding: 4px var(--list-inset) 8px;
+}
+
+.largeTitle {
+  font: var(--text-large-title);
+  letter-spacing: var(--text-large-title-tracking);
+  color: var(--label);
+  /* Prevents the browser from ever shrinking the hero title. */
+  overflow-wrap: break-word;
+}
+
+.subtitle {
+  margin-top: 2px;
+  font: var(--text-subhead);
+  letter-spacing: var(--text-subhead-tracking);
+  color: var(--label-secondary);
+}
+
+/* ---- Bar buttons ---------------------------------------------------------- */
+
+.barButton {
+  min-width: var(--touch-target);
+  height: var(--touch-target);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--blue);
+  font: var(--text-body);
+  letter-spacing: var(--text-body-tracking);
+  border-radius: 8px;
+  transition: opacity 100ms linear;
+}
+
+/* Negative margins pull the 44pt hit area back to the visual edge so the
+   glyph aligns with the 16px content inset while staying tappable. */
+.barButtonLeading {
+  margin-left: -10px;
+}
+
+.barButtonTrailing {
+  margin-right: -10px;
+}
+
+.barButton:active {
+  opacity: 0.3;
+}
+
+.barButtonProminent {
+  font: var(--text-headline);
+  letter-spacing: var(--text-headline-tracking);
+}
+
+.barButtonDisabled {
+  color: var(--label-tertiary);
+  pointer-events: none;
+}
