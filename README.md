@@ -49,10 +49,21 @@ It clicks through the real UI, so a screenshot that looks right is also proof th
 
 ## Deploying
 
-Pushes to `main` build, test, and publish to GitHub Pages. This requires **Settings →
-Pages → Source: GitHub Actions** to be enabled once on the repository. Until it is, the
-`deploy` job fails immediately with no steps — that specific signature means Pages is off,
-not that the deploy itself broke.
+Pushes to `main` build, test, and publish to GitHub Pages. It can also be published by
+hand from the Actions tab (**Build & deploy → Run workflow**) — useful for redeploying
+without inventing a commit, since re-running a failed run keeps the original event and
+would be skipped.
+
+Two repository settings have to be right, and both fail in ways that look like a broken
+workflow rather than a missing setting:
+
+- **Settings → Pages → Source: GitHub Actions.** Otherwise the `deploy` job dies before
+  running a single step.
+- **`main` must be the repository's default branch.** The `github-pages` environment
+  restricts deployments to the default branch, so if anything else is default the job
+  fails with `Branch "main" is not allowed to deploy to github-pages due to environment
+  protection rules`. The `build` job passes either way, which makes this easy to
+  misdiagnose.
 
 The base path is derived from the repository name via `GITHUB_REPOSITORY`
 (`vite.config.ts`), so **renaming the repository is safe** — the next build picks up the
