@@ -39,7 +39,12 @@ jobs:
   deploy:
     # Only main publishes. Feature branches and pull requests get the build and
     # tests, but must never overwrite the live site with in-progress work.
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    #
+    # Excludes pull_request rather than requiring push, so a run started by hand
+    # from the Actions tab (workflow_dispatch) can publish too. Without that,
+    # recovering from a failed deploy means inventing an empty commit, because
+    # re-running a failed run keeps the original event.
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
 
