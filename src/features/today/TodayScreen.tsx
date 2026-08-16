@@ -76,10 +76,7 @@ export function TodayScreen({
       ) : (
         <div className={styles.start}>
           <div className={styles.startTitle}>Nothing logged today</div>
-          <p className={styles.startMessage}>
-            Start one now and tick things off as you go, or set up tomorrow while you&rsquo;re
-            thinking about it.
-          </p>
+          <p className={styles.startMessage}>Start now, or set up tomorrow.</p>
           <div className={styles.startActions}>
             <Button block onClick={() => void begin(iso)}>
               Start a session
@@ -99,7 +96,6 @@ export function TodayScreen({
               See all
             </button>
           </div>
-          <p className={styles.railBlurb}>Longest since you last touched them.</p>
           <div className={styles.rail}>
             {stale.map((item) => (
               <button

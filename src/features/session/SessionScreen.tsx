@@ -1,42 +1,50 @@
 import { useMemo, useState, type CSSProperties } from 'react'
 import type { Movement, Session, SplitType } from '../../data/types'
 import { useStore } from '../../data/store'
-import { formatLongDay, formatRelativeDay } from '../../domain/dates'
+import { formatDaysSince, formatLongDay, formatRelativeDay } from '../../domain/dates'
 import { flowMeta } from '../../domain/flow'
-import { markLogged, sessionTitle, SPLITS, splitColor, touch } from '../../domain/sessions'
+import { markLogged, sessionTitle, SPLITS, splitColor, splitLabel, touch } from '../../domain/sessions'
+import { forSplit, movementStaleness } from '../../domain/staleness'
 import { Screen, BarButton } from '../../components/ios/Screen'
-import { ListRow, ListSection } from '../../components/ios/List'
-import { Button, Checkbox } from '../../components/ios/Controls'
+import { ListSection } from '../../components/ios/List'
+import { Button, CheckMark } from '../../components/ios/Controls'
 import { Icon } from '../../components/ios/Icon'
-import { AddMovementSheet } from './AddMovementSheet'
+import { NewMovementSheet } from './NewMovementSheet'
 import styles from './SessionScreen.module.css'
 
 /*
  * One screen for planning and for logging.
  *
- * The night before it is a place to jot intentions; at the gym it is a
- * checklist. Nothing switches modes, because the moment there are two modes
- * there is a reconciliation step, and that is the friction that has made every
- * previous attempt at this fall apart.
+ * Choosing a split reveals that split's library inline, stalest first — no
+ * modal, no search box, no typing. The previous design led with a search field
+ * over an empty library, which meant every movement had to be typed before it
+ * could be tapped. That is the opposite of a library, and it is why the app
+ * went unused.
+ *
+ * Rows keep a stable order as you tick them. Sorting selected items to the top
+ * would move the next row out from under your thumb mid-tap.
  */
 
 export function SessionScreen({ sessionId, onBack }: { sessionId: string; onBack: () => void }) {
-  const { sessions, movementsById, saveSession, deleteSession } = useStore()
-  const [adding, setAdding] = useState(false)
-  const [openNote, setOpenNote] = useState<string | null>(null)
+  const { sessions, movements, saveSession, deleteSession } = useStore()
+  const [addingNew, setAddingNew] = useState(false)
 
   const session = sessions.find((s) => s.id === sessionId)
 
-  const selectedIds = useMemo(
-    () => new Set(session?.movements.map((m) => m.movementId) ?? []),
-    [session],
-  )
+  /** The chosen split's library, stalest first, with current selection state. */
+  const library = useMemo(() => {
+    if (!session?.splitType) return []
+    const ranked = movementStaleness(movements, sessions)
+    const scoped = forSplit(ranked, session.splitType)
+    const selected = new Set(session.movements.map((m) => m.movementId))
+    return scoped.map((item) => ({ ...item, selected: selected.has(item.movement.id) }))
+  }, [movements, sessions, session])
 
   if (!session) {
     return (
       <Screen title="Session" largeTitle={false} leading={<BackButton onClick={onBack} />}>
         <ListSection>
-          <ListRow title="This session no longer exists." />
+          <div className={styles.pickPrompt}>This session no longer exists.</div>
         </ListSection>
       </Screen>
     )
@@ -52,23 +60,6 @@ export function SessionScreen({ sessionId, onBack }: { sessionId: string; onBack
       flow: session.flow.map((step) => (step.id === stepId ? { ...step, done: !step.done } : step)),
     })
 
-  const setStepMinutes = (stepId: string, minutes: number | undefined) =>
-    update({ flow: session.flow.map((step) => (step.id === stepId ? { ...step, minutes } : step)) })
-
-  const toggleMovementDone = (movementId: string) =>
-    update({
-      movements: session.movements.map((m) =>
-        m.movementId === movementId ? { ...m, done: !m.done } : m,
-      ),
-    })
-
-  const setMovementNote = (movementId: string, note: string) =>
-    update({
-      movements: session.movements.map((m) =>
-        m.movementId === movementId ? { ...m, note: note || undefined } : m,
-      ),
-    })
-
   const toggleMovement = (movement: Movement) => {
     const existing = session.movements.find((m) => m.movementId === movement.id)
     if (existing) {
@@ -80,11 +71,10 @@ export function SessionScreen({ sessionId, onBack }: { sessionId: string; onBack
         ...session.movements,
         {
           movementId: movement.id,
-          // Anything added while the session is still an intention counts as
-          // planned; anything added once it is underway was improvised.
+          // Added while the session is still an intention counts as planned;
+          // added once it's underway was improvised.
           planned: session.status === 'planned',
-          // Adding a movement mid-session means you just did it — no reason to
-          // make you tick it a second time.
+          // Ticking it mid-session means you just did it — no second tap.
           done: session.status !== 'planned',
         },
       ],
@@ -102,7 +92,7 @@ export function SessionScreen({ sessionId, onBack }: { sessionId: string; onBack
   }
 
   const isPlanned = session.status === 'planned'
-  const doneCount = session.movements.filter((m) => m.done).length
+  const selectedCount = session.movements.length
 
   return (
     <>
@@ -137,135 +127,92 @@ export function SessionScreen({ sessionId, onBack }: { sessionId: string; onBack
           })}
         </div>
 
-        <ListSection header="Thinking" footer="Whatever you'd have put in Notes. Nobody grades this.">
-          <div className={styles.intentArea}>
-            <textarea
-              className={styles.intentInput}
-              value={session.intent ?? ''}
-              rows={3}
-              placeholder="Focus on upper chest. Left shoulder still cranky, keep pressing light."
-              aria-label="Session intent"
-              onChange={(e) => update({ intent: e.target.value || undefined })}
-            />
-          </div>
+        <div className={styles.sectionHead}>
+          <span className={styles.sectionTitle}>
+            {session.splitType ? `${splitLabel(session.splitType)} movements` : 'Movements'}
+          </span>
+          {selectedCount > 0 ? (
+            <span className={styles.sectionCount}>{selectedCount} picked</span>
+          ) : null}
+        </div>
+
+        <ListSection>
+          {!session.splitType ? (
+            <div className={styles.pickPrompt}>Pick a day above to see its movements.</div>
+          ) : (
+            <>
+              {library.map((item) => (
+                <button
+                  key={item.movement.id}
+                  type="button"
+                  aria-pressed={item.selected}
+                  className={styles.pickRow}
+                  onClick={() => toggleMovement(item.movement)}
+                >
+                  <CheckMark checked={item.selected} tint={splitColor(session.splitType)} />
+                  <span className={styles.pickBody}>
+                    <span
+                      className={`${styles.pickName} ${item.selected ? styles.pickNameSelected : ''}`}
+                    >
+                      {item.movement.name}
+                    </span>
+                    <span className={styles.pickMeta}>
+                      {item.lastPerformed
+                        ? `Last done ${formatDaysSince(item.daysSince).toLowerCase()}`
+                        : 'Never logged'}
+                    </span>
+                  </span>
+                </button>
+              ))}
+
+              <button
+                type="button"
+                className={`${styles.pickRow} ${styles.newRow}`}
+                onClick={() => setAddingNew(true)}
+              >
+                <Icon
+                  name="plus-circle"
+                  size={26}
+                  strokeWidth={1.9}
+                  style={{ color: 'var(--label-tertiary)' }}
+                />
+                <span className={styles.newRowLabel}>New movement</span>
+              </button>
+            </>
+          )}
         </ListSection>
 
-        <ListSection
-          header="The visit"
-          footer="Tap what you actually did. Skipping things is normal."
-        >
+        <ListSection header="The visit">
           {session.flow.map((step) => {
             const meta = flowMeta(step.kind)
             return (
-              <div
+              <button
                 key={step.id}
+                type="button"
+                aria-pressed={step.done}
                 className={styles.step}
                 style={{ '--step-tint': meta.tint } as CSSProperties}
+                onClick={() => toggleStep(step.id)}
               >
-                <Checkbox
-                  checked={step.done}
-                  onChange={() => toggleStep(step.id)}
-                  tint={meta.tint}
-                  label={step.label}
-                />
+                <CheckMark checked={step.done} tint={meta.tint} />
                 <span className={`${styles.stepGlyph} ${step.done ? '' : styles.stepGlyphIdle}`}>
                   <Icon name={meta.icon} size={17} strokeWidth={2} />
                 </span>
-                <span className={styles.stepBody}>
-                  <span className={`${styles.stepLabel} ${step.done ? '' : styles.stepLabelIdle}`}>
-                    {step.label}
-                  </span>
+                <span className={`${styles.stepLabel} ${step.done ? '' : styles.stepLabelIdle}`}>
+                  {step.label}
                 </span>
-                {step.done ? (
-                  <label className={styles.minutes}>
-                    <input
-                      className={styles.minutesInput}
-                      value={step.minutes ?? ''}
-                      inputMode="numeric"
-                      placeholder="—"
-                      aria-label={`${step.label} minutes`}
-                      onChange={(e) => {
-                        const parsed = Number.parseInt(e.target.value, 10)
-                        setStepMinutes(step.id, Number.isNaN(parsed) ? undefined : parsed)
-                      }}
-                    />
-                    min
-                  </label>
-                ) : null}
-              </div>
+              </button>
             )
           })}
-        </ListSection>
-
-        <ListSection
-          header={doneCount > 0 ? `Movements · ${doneCount} done` : 'Movements'}
-          footer={
-            session.movements.length > 0
-              ? 'Supersets, triples, one side to failure — put it in the note. No structure to fight.'
-              : undefined
-          }
-        >
-          {session.movements.map((log) => {
-            const movement = movementsById.get(log.movementId)
-            if (!movement) return null
-            const noteOpen = openNote === log.movementId || Boolean(log.note)
-            return (
-              <div key={log.movementId} className={styles.movement}>
-                <div className={styles.movementMain}>
-                  <Checkbox
-                    checked={log.done}
-                    onChange={() => toggleMovementDone(log.movementId)}
-                    tint={splitColor(session.splitType)}
-                    label={movement.name}
-                  />
-                  <button
-                    type="button"
-                    className={`${styles.movementLabel} ${log.done ? '' : styles.movementLabelIdle}`}
-                    onClick={() => toggleMovementDone(log.movementId)}
-                  >
-                    {movement.name}
-                  </button>
-                  {log.planned && !log.done ? <span className={styles.plannedTag}>Planned</span> : null}
-                  <button
-                    type="button"
-                    aria-label={`Note for ${movement.name}`}
-                    className={`${styles.noteButton} ${log.note ? styles.noteButtonActive : ''}`}
-                    onClick={() => setOpenNote(openNote === log.movementId ? null : log.movementId)}
-                  >
-                    <Icon name="pencil" size={17} strokeWidth={1.9} />
-                  </button>
-                </div>
-                {noteOpen ? (
-                  <div className={styles.noteField}>
-                    <textarea
-                      className={styles.noteInput}
-                      value={log.note ?? ''}
-                      rows={2}
-                      placeholder="Superset with flyes, left side to failure…"
-                      aria-label={`Note for ${movement.name}`}
-                      onChange={(e) => setMovementNote(log.movementId, e.target.value)}
-                    />
-                  </div>
-                ) : null}
-              </div>
-            )
-          })}
-
-          <ListRow
-            title="Add movements"
-            leading={<Icon name="plus-circle" size={26} strokeWidth={1.9} style={{ color: 'var(--blue)' }} />}
-            onClick={() => setAdding(true)}
-            style={{ color: 'var(--blue)' }}
-          />
         </ListSection>
 
         <ListSection header="Notes">
-          <div className={styles.intentArea}>
+          <div className={styles.noteArea}>
             <textarea
-              className={styles.intentInput}
+              className={styles.noteInput}
               value={session.notes ?? ''}
               rows={3}
-              placeholder="How it went, how you felt, anything worth remembering."
+              placeholder="Supersets, how it felt, anything worth remembering."
               aria-label="Session notes"
               onChange={(e) => update({ notes: e.target.value || undefined })}
             />
@@ -284,12 +231,11 @@ export function SessionScreen({ sessionId, onBack }: { sessionId: string; onBack
         </div>
       </Screen>
 
-      <AddMovementSheet
-        open={adding}
-        onClose={() => setAdding(false)}
+      <NewMovementSheet
+        open={addingNew}
+        onClose={() => setAddingNew(false)}
         split={session.splitType}
-        selectedIds={selectedIds}
-        onToggle={toggleMovement}
+        onCreated={toggleMovement}
       />
     </>
   )

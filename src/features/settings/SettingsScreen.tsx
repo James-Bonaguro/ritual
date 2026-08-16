@@ -75,7 +75,6 @@ export function SettingsScreen({
 
       <ListSection
         header="Your visit"
-        footer="The sequence prefilled into every new session. Reorder or trim it to match how you actually move through the gym."
         separatorInset={57}
       >
         <ListRow
@@ -97,7 +96,6 @@ export function SettingsScreen({
 
       <ListSection
         header="Backup"
-        footer="Your data lives on this device. A backup file is the way to move it or keep a copy."
         separatorInset={57}
       >
         <ListRow
@@ -155,7 +153,7 @@ export function SettingsScreen({
         )}
       </ListSection>
 
-      <ListSection footer="Ritual — a journal for the whole visit, not just the lift." tight>
+      <ListSection tight>
         <ListRow title="Version" value="0.1.0" />
       </ListSection>
     </Screen>
@@ -184,9 +182,7 @@ export function VisitTemplateScreen({ onBack }: { onBack: () => void }) {
       subtitle="Prefilled into every new session"
     >
       <ListSection
-        header="Steps"
-        footer="Anything you skip on the day just stays unticked — there's no penalty for a step you don't use."
-      >
+        header="Steps">
         {template.map((step, index) => (
           <ListRow
             key={`${step.kind}-${index}`}

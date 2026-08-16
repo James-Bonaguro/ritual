@@ -32,6 +32,8 @@ export const FLOW_META: Record<FlowKind, FlowMeta> = {
  * The default shape of a visit, in the order it actually happens: loosen up,
  * train, then heat or cold, then the cold shower.
  *
+ * No separate stretch step — the vibration plate is the stretch.
+ *
  * The four heat/cold options are all present because which one gets used
  * varies by day — they are offered together and you tick whichever you did,
  * rather than the app trying to guess.
@@ -39,7 +41,6 @@ export const FLOW_META: Record<FlowKind, FlowMeta> = {
 export const DEFAULT_VISIT_TEMPLATE: { kind: FlowKind; label: string }[] = [
   { kind: 'massage_bed', label: 'Massage bed' },
   { kind: 'vibration_plate', label: 'Vibration plate' },
-  { kind: 'stretch', label: 'Stretch' },
   { kind: 'lift', label: 'Lift' },
   { kind: 'hot_tub', label: 'Hot tub' },
   { kind: 'steam_room', label: 'Steam room' },

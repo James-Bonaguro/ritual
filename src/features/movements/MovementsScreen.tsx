@@ -60,9 +60,7 @@ export function MovementsScreen({ onOpenMovement }: { onOpenMovement: (id: strin
         <>
           <SearchField value={query} onChange={setQuery} placeholder="Search movements" />
           <ListSection
-            header="Stalest first"
-            footer="Tap one for its full history and every note you've written about it."
-          >
+            header="Stalest first">
             {filtered.map((item) => (
               <button
                 key={item.movement.id}
@@ -91,9 +89,7 @@ export function MovementsScreen({ onOpenMovement }: { onOpenMovement: (id: strin
         </>
       ) : (
         <ListSection
-          header="Stalest first"
-          footer="An area is only as fresh as the last movement you did that hits it. Areas with no movements yet are listed last."
-        >
+          header="Stalest first">
           {rankedAreas.map((item) => (
             <div key={item.area.id} className={styles.row}>
               <span className={styles.body}>

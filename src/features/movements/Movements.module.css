@@ -4,7 +4,7 @@
   gap: 12px;
   width: 100%;
   min-height: 56px;
-  padding: 10px var(--list-inset);
+  padding: 10px var(--gutter);
   position: relative;
   text-align: left;
   transition: background-color 100ms linear;
@@ -17,7 +17,7 @@
 .row:not(:last-child)::after {
   content: '';
   position: absolute;
-  left: var(--list-inset);
+  left: var(--gutter);
   right: 0;
   bottom: 0;
   height: 0.5px;
@@ -74,7 +74,7 @@
 /* ---- Detail ---------------------------------------------------------------- */
 
 .hero {
-  padding: 0 var(--list-inset) 26px;
+  padding: 0 var(--gutter) 26px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -113,7 +113,7 @@
   align-items: flex-end;
   gap: 3px;
   height: 46px;
-  padding: 14px var(--list-inset) 6px;
+  padding: 14px var(--gutter) 6px;
 }
 
 .sparkBar {
@@ -130,7 +130,7 @@
 .sparkAxis {
   display: flex;
   justify-content: space-between;
-  padding: 0 var(--list-inset) 4px;
+  padding: 0 var(--gutter) 4px;
   font: var(--text-caption2);
   letter-spacing: var(--text-caption2-tracking);
   color: var(--label-tertiary);
@@ -139,14 +139,14 @@
 /* ---- Note history ---------------------------------------------------------- */
 
 .noteEntry {
-  padding: 11px var(--list-inset);
+  padding: 11px var(--gutter);
   position: relative;
 }
 
 .noteEntry:not(:last-child)::after {
   content: '';
   position: absolute;
-  left: var(--list-inset);
+  left: var(--gutter);
   right: 0;
   bottom: 0;
   height: 0.5px;
@@ -172,7 +172,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 12px var(--list-inset);
+  padding: 12px var(--gutter);
 }
 
 .areaToggle {
@@ -199,5 +199,5 @@
 }
 
 .actions {
-  padding: 4px var(--list-inset) 0;
+  padding: 4px var(--gutter) 0;
 }

@@ -92,6 +92,12 @@ export type Movement = {
   splits: SplitType[]
   /** Chosen once, at creation. Never asked again. */
   areas: AreaId[]
+  /**
+   * Tiebreak position when staleness can't decide — which is every movement on
+   * day one, since nothing has been logged yet. Without it the list falls back
+   * to alphabetical and a push day opens on "Ab Wheel" instead of bench press.
+   */
+  order?: number
   createdAt: string
   updatedAt: string
   archived?: boolean
@@ -104,6 +110,11 @@ export type Settings = {
   appearance: Appearance
   /** The editable shape of a normal gym visit, prefilled into new sessions. */
   visitTemplate: { kind: FlowKind; label: string }[]
+  /**
+   * Highest seed batch already applied. Lets the starter library be topped up
+   * in a later release without re-adding movements the user has deleted.
+   */
+  seedVersion?: number
   updatedAt: string
 }
 

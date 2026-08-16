@@ -1,11 +1,11 @@
 .card {
-  margin: 0 var(--list-inset) 34px;
+  margin: 0 var(--gutter) 34px;
   padding: 16px 18px;
   border-radius: var(--card-radius);
   background: var(--bg-grouped-secondary);
   box-shadow: var(--shadow-card);
   display: block;
-  width: calc(100% - var(--list-inset) * 2);
+  width: calc(100% - var(--gutter) * 2);
   text-align: left;
   position: relative;
   overflow: hidden;
@@ -116,7 +116,7 @@
 /* ---- Start block ----------------------------------------------------------- */
 
 .start {
-  margin: 0 var(--list-inset) 34px;
+  margin: 0 var(--gutter) 34px;
   padding: 22px 20px 20px;
   border-radius: var(--card-radius);
   background: var(--bg-grouped-secondary);
@@ -154,7 +154,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  padding: 0 var(--list-inset) 10px;
+  padding: 0 var(--gutter) 10px;
 }
 
 .railTitle {
@@ -172,7 +172,7 @@
 }
 
 .railBlurb {
-  padding: 0 var(--list-inset) 12px;
+  padding: 0 var(--gutter) 12px;
   font: var(--text-footnote);
   letter-spacing: var(--text-footnote-tracking);
   color: var(--label-secondary);
@@ -182,7 +182,7 @@
   display: flex;
   gap: 10px;
   overflow-x: auto;
-  padding: 2px var(--list-inset) 34px;
+  padding: 2px var(--gutter) 34px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }

@@ -1,23 +1,28 @@
-/* Inset grouped list — UITableView .insetGrouped. */
+/*
+ * Card-based lists.
+ *
+ * Rows are separated by whitespace and a very faint hairline rather than the
+ * full iOS separator treatment — the reference set reads as calm because it
+ * lets padding do the work that rules usually do.
+ */
 
 .section {
-  margin: 0 var(--list-inset) 34px;
+  margin: 0 var(--gutter) var(--section-gap);
 }
 
 .sectionTight {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .header {
-  padding: 0 var(--list-inset) 7px;
-  font: var(--text-footnote);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--label-secondary);
+  padding: 0 4px 10px;
+  font: var(--text-title3);
+  letter-spacing: var(--text-title3-tracking);
+  color: var(--label);
 }
 
 .footer {
-  padding: 7px var(--list-inset) 0;
+  padding: 10px 4px 0;
   font: var(--text-footnote);
   letter-spacing: var(--text-footnote-tracking);
   color: var(--label-secondary);
@@ -26,42 +31,44 @@
 .group {
   background: var(--bg-grouped-secondary);
   border-radius: var(--list-radius);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
   /* Separator origin, overridden per-group when rows have leading icons. */
-  --separator-inset: var(--list-inset);
+  --separator-inset: var(--card-pad);
 }
 
 .groupPlain {
   background: none;
   border-radius: 0;
+  box-shadow: none;
 }
 
-/* ---- Row ------------------------------------------------------------------ */
+/* ---- Row ----------------------------------------------------------------- */
 
 .row {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
-  min-height: var(--touch-target);
-  padding: 11px var(--list-inset);
+  min-height: 54px;
+  padding: 13px var(--card-pad);
   text-align: left;
   color: var(--label);
   background: transparent;
-  transition: background-color 100ms linear;
+  transition: background-color 120ms linear;
 }
 
-/* Hairline separator, inset to the text origin rather than full-bleed —
-   the detail that most reliably separates a real iOS list from a fake one. */
+/* Faint, inset to the text origin. Much lighter than the iOS separator — it
+   marks the boundary without drawing the eye. */
 .row:not(:last-child)::after {
   content: '';
   position: absolute;
   left: var(--separator-inset);
   right: 0;
   bottom: 0;
-  height: 0.5px;
-  background: var(--separator);
+  height: 1px;
+  background: var(--hairline);
 }
 
 .rowTappable:active {
@@ -76,11 +83,10 @@
   color: var(--label-secondary);
 }
 
-/* Rounded-square glyph tile, the Settings.app treatment. */
 .rowIconTile {
-  width: 29px;
-  height: 29px;
-  border-radius: 7px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -93,7 +99,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .rowTitle {
@@ -118,8 +124,8 @@
 }
 
 .rowValue {
-  font: var(--text-body);
-  letter-spacing: var(--text-body-tracking);
+  font: var(--text-subhead);
+  letter-spacing: var(--text-subhead-tracking);
   color: var(--label-secondary);
   flex: none;
   white-space: nowrap;
@@ -128,12 +134,12 @@
 .rowTrailing {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex: none;
 }
 
 .chevron {
-  color: var(--label-tertiary);
+  color: var(--label-quaternary);
   flex: none;
 }
 
@@ -146,6 +152,12 @@
 }
 
 .centered .rowTitle {
-  color: var(--blue);
+  color: var(--label);
+  font: var(--text-headline);
+  letter-spacing: var(--text-headline-tracking);
   text-align: center;
+}
+
+.destructive.centered .rowTitle {
+  color: var(--red);
 }

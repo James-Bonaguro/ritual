@@ -1,0 +1,41 @@
+.groupLabel {
+  padding: 12px var(--card-pad) 0;
+  font: var(--text-footnote);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--label-tertiary);
+}
+
+.areaGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px var(--card-pad) 14px;
+}
+
+.areaToggle {
+  padding: 8px 14px;
+  border-radius: var(--pill-radius);
+  background: var(--fill-tertiary);
+  color: var(--label);
+  font: var(--text-subhead);
+  letter-spacing: var(--text-subhead-tracking);
+  transition:
+    background-color 140ms linear,
+    color 140ms linear,
+    transform 140ms var(--ease-ios);
+}
+
+.areaToggle:active {
+  transform: scale(0.94);
+}
+
+.areaToggleOn {
+  background: var(--ink);
+  color: var(--ink-label);
+  font-weight: 600;
+}
+
+.footer {
+  padding: 8px var(--gutter) 0;
+}

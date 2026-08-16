@@ -1,22 +1,25 @@
+/* ---- Split chips ---------------------------------------------------------- */
+
 .splitRow {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
-  padding: 0 var(--list-inset) 24px;
+  padding: 0 var(--gutter) var(--section-gap);
 }
 
 .splitCard {
-  padding: 12px 6px;
-  border-radius: 12px;
+  padding: 14px 6px;
+  border-radius: var(--control-radius);
   background: var(--bg-grouped-secondary);
+  box-shadow: var(--shadow-card);
   border: 1.5px solid transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   transition:
-    border-color 140ms linear,
-    transform 140ms var(--ease-ios);
+    border-color 160ms linear,
+    transform 160ms var(--ease-ios);
 }
 
 .splitCard:active {
@@ -25,12 +28,11 @@
 
 .splitCardActive {
   border-color: var(--split-color);
-  background: color-mix(in srgb, var(--split-color) 10%, var(--bg-grouped-secondary));
 }
 
 .splitDot {
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--split-color);
 }
@@ -42,187 +44,185 @@
   color: var(--label);
 }
 
-/* ---- Flow steps ------------------------------------------------------------ */
+/* ---- Section heading with a count ---------------------------------------- */
 
-.step {
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 calc(var(--gutter) + 4px) 10px;
+}
+
+.sectionTitle {
+  font: var(--text-title3);
+  letter-spacing: var(--text-title3-tracking);
+  color: var(--label);
+}
+
+.sectionCount {
+  font: var(--text-subhead);
+  letter-spacing: var(--text-subhead-tracking);
+  color: var(--label-secondary);
+  flex: none;
+}
+
+/* ---- Library / movement rows ---------------------------------------------
+ * Each row is a single <button>. The checkmark inside is a plain span — see
+ * CheckMark in Controls.tsx for why nesting a button here breaks toggling.
+ */
+
+.pickRow {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
-  min-height: 52px;
-  padding: 8px var(--list-inset);
-  position: relative;
+  min-height: 56px;
+  padding: 11px var(--card-pad);
   text-align: left;
+  transition: background-color 120ms linear;
 }
 
-.step:not(:last-child)::after {
+.pickRow:not(:last-child)::after {
   content: '';
   position: absolute;
-  left: calc(var(--list-inset) + 38px);
+  left: calc(var(--card-pad) + 40px);
   right: 0;
   bottom: 0;
-  height: 0.5px;
-  background: var(--separator);
+  height: 1px;
+  background: var(--hairline);
 }
 
-.stepGlyph {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  background: var(--step-tint);
-  flex: none;
-  transition: opacity 160ms linear;
-}
-
-.stepGlyphIdle {
-  opacity: 0.34;
-}
-
-.stepBody {
-  flex: 1;
-  min-width: 0;
-}
-
-.stepLabel {
-  font: var(--text-body);
-  letter-spacing: var(--text-body-tracking);
-  color: var(--label);
-  transition: color 160ms linear;
-}
-
-.stepLabelIdle {
-  color: var(--label-secondary);
-}
-
-.minutes {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  flex: none;
-  padding: 4px 8px;
-  border-radius: 8px;
+.pickRow:active {
   background: var(--fill-quaternary);
-  color: var(--label-secondary);
-  font: var(--text-footnote);
-  letter-spacing: var(--text-footnote-tracking);
 }
 
-.minutesInput {
-  width: 28px;
-  text-align: right;
-  font: var(--text-footnote);
-  letter-spacing: var(--text-footnote-tracking);
-  color: var(--label);
-}
-
-/* ---- Movements ------------------------------------------------------------- */
-
-.movement {
-  position: relative;
-  padding: 8px var(--list-inset);
-}
-
-.movement:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  left: calc(var(--list-inset) + 38px);
-  right: 0;
-  bottom: 0;
-  height: 0.5px;
-  background: var(--separator);
-}
-
-.movementMain {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 38px;
-}
-
-.movementLabel {
+.pickBody {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pickName {
   font: var(--text-body);
   letter-spacing: var(--text-body-tracking);
   color: var(--label);
-  text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   transition: color 160ms linear;
 }
 
-.movementLabelIdle {
-  color: var(--label-secondary);
-}
-
-.plannedTag {
-  font: var(--text-caption2);
-  letter-spacing: var(--text-caption2-tracking);
-  color: var(--label-tertiary);
-  flex: none;
-  text-transform: uppercase;
+.pickNameSelected {
   font-weight: 600;
 }
 
-.noteButton {
-  flex: none;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
+.pickMeta {
+  font: var(--text-footnote);
+  letter-spacing: var(--text-footnote-tracking);
   color: var(--label-tertiary);
 }
 
-.noteButtonActive {
-  color: var(--blue);
+.newRow {
+  justify-content: flex-start;
 }
 
-.noteField {
-  padding: 2px 0 8px 38px;
+.newRowLabel {
+  font: var(--text-body);
+  letter-spacing: var(--text-body-tracking);
+  color: var(--label-secondary);
+}
+
+/* Placeholder shown before a split is chosen. */
+.pickPrompt {
+  padding: 26px var(--card-pad);
+  text-align: center;
+  font: var(--text-subhead);
+  letter-spacing: var(--text-subhead-tracking);
+  color: var(--label-tertiary);
+}
+
+/* ---- Visit steps ---------------------------------------------------------- */
+
+.step {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 56px;
+  padding: 11px var(--card-pad);
+  text-align: left;
+  transition: background-color 120ms linear;
+}
+
+.step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--card-pad) + 40px);
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--hairline);
+}
+
+.step:active {
+  background: var(--fill-quaternary);
+}
+
+.stepGlyph {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: var(--step-tint);
+  flex: none;
+  transition: opacity 180ms linear;
+}
+
+.stepGlyphIdle {
+  opacity: 0.28;
+}
+
+.stepLabel {
+  flex: 1;
+  min-width: 0;
+  font: var(--text-body);
+  letter-spacing: var(--text-body-tracking);
+  color: var(--label);
+  transition: color 180ms linear;
+}
+
+.stepLabelIdle {
+  color: var(--label-secondary);
+}
+
+/* ---- Notes ---------------------------------------------------------------- */
+
+.noteArea {
+  padding: 14px var(--card-pad);
 }
 
 .noteInput {
-  font: var(--text-subhead);
-  letter-spacing: var(--text-subhead-tracking);
-  color: var(--label-secondary);
-  line-height: 1.4;
+  font: var(--text-body);
+  letter-spacing: var(--text-body-tracking);
+  line-height: 1.5;
   resize: none;
+  min-height: 76px;
   width: 100%;
 }
 
-.noteText {
-  padding: 0 0 8px 38px;
-  font: var(--text-subhead);
-  letter-spacing: var(--text-subhead-tracking);
-  color: var(--label-secondary);
-  line-height: 1.4;
-  white-space: pre-wrap;
-}
-
-/* ---- Footer ---------------------------------------------------------------- */
+/* ---- Footer actions ------------------------------------------------------- */
 
 .actions {
-  padding: 4px var(--list-inset) 0;
+  padding: 4px var(--gutter) 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-
-.intentArea {
-  padding: 12px var(--list-inset);
-}
-
-.intentInput {
-  font: var(--text-body);
-  letter-spacing: var(--text-body-tracking);
-  line-height: 1.45;
-  resize: none;
-  min-height: 66px;
+  gap: 8px;
 }

@@ -11,6 +11,7 @@ import type { Appearance, Backup, Movement, Session, Settings } from './types'
 import { localRepository } from './localAdapter'
 import type { Repository } from './repository'
 import { DEFAULT_VISIT_TEMPLATE } from '../domain/flow'
+import { movementsToSeed, SEED_VERSION } from '../domain/library'
 import { createMovement, sortSessions } from '../domain/sessions'
 
 /*
@@ -73,9 +74,38 @@ export function StoreProvider({
           repository.getSettings(),
         ])
         if (cancelled) return
-        setMovements(loadedMovements)
+
+        const settingsNow = loadedSettings
+          ? { ...DEFAULT_SETTINGS, ...loadedSettings }
+          : DEFAULT_SETTINGS
+
+        // Top up the starter library. Only ever adds names that aren't already
+        // present, so nothing the user created is touched and re-running is a
+        // no-op. Guarded by seedVersion so a movement they deleted on purpose
+        // doesn't reappear on the next launch.
+        let movementsNow = loadedMovements
+        if ((settingsNow.seedVersion ?? 0) < SEED_VERSION) {
+          const additions = movementsToSeed(loadedMovements).map((seed) =>
+            createMovement({
+              name: seed.name,
+              splits: seed.splits,
+              areas: seed.areas,
+              order: seed.order,
+            }),
+          )
+          if (additions.length > 0) {
+            await Promise.all(additions.map((m) => repository.putMovement(m)))
+            movementsNow = [...loadedMovements, ...additions]
+          }
+          const seeded = { ...settingsNow, seedVersion: SEED_VERSION }
+          await repository.putSettings(seeded)
+          if (!cancelled) setSettings(seeded)
+        } else {
+          setSettings(settingsNow)
+        }
+
+        setMovements(movementsNow)
         setSessions(sortSessions(loadedSessions))
-        if (loadedSettings) setSettings({ ...DEFAULT_SETTINGS, ...loadedSettings })
       } catch (error) {
         // Private browsing and some locked-down configurations block
         // IndexedDB. The app still works for the session; it just won't
