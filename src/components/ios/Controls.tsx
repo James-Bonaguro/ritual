@@ -16,15 +16,16 @@ export function Segmented<T extends string>({ options, value, onChange, style }:
     options.findIndex((o) => o.value === value),
     0,
   )
-  const width = 100 / options.length
 
   return (
     <div className={styles.segmented} role="tablist" style={style}>
+      {/* Track is inset by 4px either side, so segments divide (100% - 8px).
+          translateX(100%) then advances by exactly one segment width. */}
       <div
         className={styles.thumb}
         style={{
-          width: `calc(${width}% - 4px * ${1 / options.length})`,
-          transform: `translateX(calc(${index * 100}% + ${index * 0}px))`,
+          width: `calc((100% - 8px) / ${options.length})`,
+          transform: `translateX(${index * 100}%)`,
         }}
       />
       {options.map((option, i) => {
@@ -131,6 +132,26 @@ export function Checkbox({ checked, onChange, tint, label }: CheckboxProps) {
         <Icon name="checkmark" size={15} strokeWidth={2.8} />
       </span>
     </button>
+  )
+}
+
+/**
+ * Visual-only checkmark for use *inside* a row that is itself tappable.
+ *
+ * Never make this a button. A `<button>` nested in a `<button>` is invalid
+ * HTML, and the inner click also bubbles to the outer handler — which fires
+ * the toggle twice and silently cancels it out. That exact bug made adding a
+ * movement impossible depending on where your thumb landed.
+ */
+export function CheckMark({ checked, tint }: { checked: boolean; tint?: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`${styles.checkbox} ${checked ? styles.checkboxChecked : ''}`}
+      style={tint ? ({ '--tint': tint } as CSSProperties) : undefined}
+    >
+      <Icon name="checkmark" size={15} strokeWidth={2.8} />
+    </span>
   )
 }
 

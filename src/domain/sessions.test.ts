@@ -10,7 +10,6 @@ describe('buildFlow', () => {
     expect(flow.map((s) => s.kind)).toEqual([
       'massage_bed',
       'vibration_plate',
-      'stretch',
       'lift',
       'hot_tub',
       'steam_room',
@@ -18,6 +17,10 @@ describe('buildFlow', () => {
       'cold_pool',
       'cold_shower',
     ])
+  })
+
+  it('has no separate stretch step — the vibration plate is the stretch', () => {
+    expect(buildFlow(DEFAULT_VISIT_TEMPLATE).map((s) => s.kind)).not.toContain('stretch')
   })
 
   it('starts every step unticked', () => {

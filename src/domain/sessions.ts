@@ -66,6 +66,7 @@ export function createMovement(options: {
   name: string
   splits?: SplitType[]
   areas?: Movement['areas']
+  order?: number
 }): Movement {
   const now = new Date().toISOString()
   return {
@@ -73,6 +74,7 @@ export function createMovement(options: {
     name: options.name.trim(),
     splits: options.splits ?? [],
     areas: options.areas ?? [],
+    order: options.order,
     createdAt: now,
     updatedAt: now,
   }

@@ -68,7 +68,7 @@
   height: 56px;
   display: flex;
   align-items: center;
-  padding: 0 var(--list-inset);
+  padding: 0 var(--gutter);
   gap: 8px;
   background: var(--bg-grouped);
   border-bottom: 0.5px solid var(--separator);

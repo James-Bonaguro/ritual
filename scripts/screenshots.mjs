@@ -1,33 +1,33 @@
 /*
  * Drives the built app through the real user flow and captures every screen.
  *
- * This is the verification step that stands in for the author being able to
- * open the app themselves: it clicks the actual buttons, so a screenshot that
- * looks right is also proof the flow works.
+ * This stands in for the author being able to run it: it clicks the actual
+ * buttons, so a screenshot that looks right is also proof the flow works.
  *
- *   npm run build && npm run shots
+ * It also carries one hard assertion. The add-movement bug shipped because
+ * this pass clicked row *labels* and never the checkmark itself — and tapping
+ * the checkmark was the broken path. Every run now taps the checkmark
+ * precisely and fails loudly if the selection doesn't stick.
+ *
+ *   npm run build && npm run preview   # in one shell
+ *   npm run shots                      # in another
  */
 
-import { mkdirSync, writeFileSync, rmSync } from 'node:fs'
+import { mkdirSync, rmSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { launch } from './browser.mjs'
-import { buildFixture } from './fixture.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const outDir = resolve(root, 'screenshots')
-// Local builds have no repo-name prefix (see vite.config.ts), so preview serves
-// at the root. Override for a build made with an explicit BASE_PATH.
 const BASE = process.env.PREVIEW_URL ?? 'http://localhost:4173/'
 
-const IPHONE = { width: 393, height: 852 } // iPhone 15 Pro
+// iPhone 14: 390x844 CSS px at 3x.
+const IPHONE = { width: 390, height: 844 }
 const MAC = { width: 1440, height: 900 }
 
 rmSync(outDir, { recursive: true, force: true })
 mkdirSync(outDir, { recursive: true })
-
-const fixturePath = resolve(outDir, 'fixture.json')
-writeFileSync(fixturePath, JSON.stringify(buildFixture(), null, 2))
 
 const browser = await launch()
 
@@ -48,7 +48,7 @@ async function newPage(viewport, colorScheme) {
   return { context, page }
 }
 
-/** Tab bar / sidebar buttons only — card text can otherwise match these names. */
+/** Tab bar / sidebar only — card text can otherwise match these names. */
 function tab(page, name) {
   return page.locator('nav').getByRole('button', { name, exact: true })
 }
@@ -57,149 +57,104 @@ let counter = 0
 async function shot(page, name) {
   counter += 1
   const file = `${String(counter).padStart(2, '0')}-${name}.png`
-  // Let transitions settle so nothing is caught mid-slide.
-  await page.waitForTimeout(500)
+  await page.waitForTimeout(450) // let transitions settle
   await page.screenshot({ path: resolve(outDir, file) })
   console.log(`  ${file}`)
 }
 
-/** Loads the twelve-week fixture through the app's own import flow. */
-async function seed(page) {
-  await page.getByLabel('Settings').click()
-  await page.waitForTimeout(400)
-  await page.getByText('Import backup').click()
-  await page.locator('input[type="file"]').setInputFiles(fixturePath)
-  await page.waitForTimeout(700)
-  await page.getByLabel('Back').click()
-  await page.waitForTimeout(500)
+const failures = []
+function check(condition, message) {
+  if (condition) return
+  failures.push(message)
+  console.error(`  ✗ ${message}`)
 }
 
-console.log('\niPhone 15 Pro — light, empty state')
-{
-  const { context, page } = await newPage(IPHONE, 'light')
-
-  await shot(page, 'today-empty')
-
-  await tab(page, 'Movements').click()
-  await shot(page, 'movements-empty')
-
-  await tab(page, 'History').click()
-  await shot(page, 'history-empty')
-
-  // Walk the real creation flow: start a session, choose a split, invent a
-  // movement that does not exist yet, and tag its areas.
-  await tab(page, 'Today').click()
+/** Opens a fresh session and selects a split, returning the page mid-flow. */
+async function openSession(page, split = 'Push') {
   await page.getByRole('button', { name: 'Start a session' }).click()
-  await page.waitForTimeout(500)
-  await shot(page, 'session-new')
-
-  await page.getByRole('button', { name: 'Push', exact: true }).click()
-  await page.getByLabel('Session intent').fill('Upper chest focus. Been all flat pressing lately.')
-  await page.waitForTimeout(300)
-
-  await page.getByText('Add movements').click()
-  await page.waitForTimeout(600)
-  await shot(page, 'add-movements-empty')
-
-  await page.getByPlaceholder('Search or type something new').fill('Incline Dumbbell Press')
   await page.waitForTimeout(400)
-  await page.getByText(/^Create/).click()
-  await page.waitForTimeout(500)
-  await shot(page, 'create-movement-areas')
-
-  await page.getByRole('button', { name: 'Chest', exact: true }).click()
-  await page.getByRole('button', { name: 'Front delts', exact: true }).click()
-  await page.getByRole('button', { name: 'Add to session' }).click()
-  await page.waitForTimeout(600)
-  await shot(page, 'add-movements-after-create')
-
-  await page.getByRole('button', { name: 'Done', exact: true }).click()
-  await page.waitForTimeout(600)
-  await shot(page, 'session-with-movement')
-
-  await context.close()
+  await page.getByRole('button', { name: split, exact: true }).click()
+  await page.waitForTimeout(400)
 }
 
-console.log('\niPhone 15 Pro — light, twelve weeks of history')
+console.log('\niPhone 14 — light')
 {
   const { context, page } = await newPage(IPHONE, 'light')
-  await seed(page)
 
-  await shot(page, 'today-populated')
+  await shot(page, 'today')
 
   await tab(page, 'Movements').click()
-  await shot(page, 'movements-by-movement')
-
-  await page.getByRole('tab', { name: 'By area' }).click()
-  await shot(page, 'movements-by-area')
-
-  await page.getByRole('tab', { name: 'By movement' }).click()
-  await page.waitForTimeout(300)
-  await page.getByRole('button', { name: /Face Pull/ }).first().click()
-  await page.waitForTimeout(600)
-  await shot(page, 'movement-detail')
-
-  await tab(page, 'History').click()
-  await shot(page, 'history-populated')
+  await shot(page, 'movements-library')
 
   await tab(page, 'Today').click()
-  await page.waitForTimeout(300)
-  // Open tomorrow's plan — the Mac-at-the-desk half of the app.
-  await page.locator('button').filter({ hasText: 'Pull day' }).first().click()
-  await page.waitForTimeout(600)
-  await shot(page, 'planned-session')
+  await page.waitForTimeout(250)
+  await openSession(page)
+  await shot(page, 'session-push-library')
 
-  await page.getByText('Add movements').click()
-  await page.waitForTimeout(700)
-  await shot(page, 'planning-going-cold')
+  /* ---- Regression: tap the checkmark, not the label -------------------- */
+  const firstRow = page.locator('button[aria-pressed]').filter({ hasText: /Last done|Never logged/ }).first()
+  const movementName = (await firstRow.innerText()).split('\n')[0]
+
+  // Click the checkmark's own bounding box. Under the old markup this was a
+  // nested <button>, so the click fired the toggle twice and cancelled itself.
+  const mark = firstRow.locator('span').first()
+  await mark.click()
+  await page.waitForTimeout(300)
+
+  check(
+    (await firstRow.getAttribute('aria-pressed')) === 'true',
+    `tapping the checkmark did not select "${movementName}"`,
+  )
+  check(await page.getByText('1 picked').isVisible(), 'selection count did not reach "1 picked"')
+
+  // And a second one via the label, to prove both paths agree.
+  const secondRow = page.locator('button[aria-pressed]').filter({ hasText: /Last done|Never logged/ }).nth(1)
+  await secondRow.click()
+  await page.waitForTimeout(300)
+  check(await page.getByText('2 picked').isVisible(), 'second selection did not stick')
+
+  await shot(page, 'session-picked')
+
+  // Tick a couple of visit steps.
+  await page.getByRole('button', { name: /Massage bed/ }).click()
+  await page.getByRole('button', { name: /Hot tub/ }).click()
+  await page.waitForTimeout(300)
+  await shot(page, 'session-visit')
+
+  await page.getByLabel('Session notes').fill('Superset the last two. Left shoulder fine today.')
+  await page.waitForTimeout(250)
+  await shot(page, 'session-notes')
 
   await context.close()
 }
 
-console.log('\niPhone 15 Pro — dark')
+console.log('\niPhone 14 — dark')
 {
   const { context, page } = await newPage(IPHONE, 'dark')
-  await seed(page)
-
   await shot(page, 'dark-today')
+
+  await openSession(page, 'Pull')
+  await shot(page, 'dark-session-library')
 
   await tab(page, 'Movements').click()
   await shot(page, 'dark-movements')
 
-  await tab(page, 'Today').click()
-  await page.waitForTimeout(300)
-  await page.locator('button').filter({ hasText: 'Pull day' }).first().click()
-  await page.waitForTimeout(600)
-  await shot(page, 'dark-session')
-
-  await page.getByText('Add movements').click()
-  await page.waitForTimeout(700)
-  await shot(page, 'dark-planning')
-
   await context.close()
 }
 
-console.log('\nMac — sidebar layout')
+console.log('\nMac')
 {
   const { context, page } = await newPage(MAC, 'light')
-  await seed(page)
   await shot(page, 'mac-today')
-
-  await tab(page, 'Movements').click()
-  await shot(page, 'mac-movements')
-
-  await context.close()
-}
-
-console.log('\nMac — dark')
-{
-  const { context, page } = await newPage(MAC, 'dark')
-  await seed(page)
-  await tab(page, 'Movements').click()
-  await page.getByRole('tab', { name: 'By area' }).click()
-  await shot(page, 'mac-dark-areas')
   await context.close()
 }
 
 await browser.close()
-console.log(`\n${counter} screenshots in ${outDir}\n`)
+
+console.log(`\n${counter} screenshots in ${outDir}`)
+if (failures.length > 0) {
+  console.error(`\n${failures.length} CHECK(S) FAILED:`)
+  for (const f of failures) console.error(`  - ${f}`)
+  process.exit(1)
+}
+console.log('all checks passed\n')

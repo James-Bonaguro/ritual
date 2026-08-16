@@ -96,7 +96,16 @@ export function movementStaleness(
         recentCount: countByMovement.get(movement.id) ?? 0,
       }
     })
-    .sort((a, b) => byStalest(a, b) || a.movement.name.localeCompare(b.movement.name))
+    .sort(
+      (a, b) =>
+        byStalest(a, b) ||
+        // Day one has no history at all, so this is what decides the order the
+        // library reads in: the curated seed sequence, compounds first and core
+        // last. Movements the user invented have no order and sort after.
+        (a.movement.order ?? Number.MAX_SAFE_INTEGER) -
+          (b.movement.order ?? Number.MAX_SAFE_INTEGER) ||
+        a.movement.name.localeCompare(b.movement.name),
+    )
 }
 
 /**
