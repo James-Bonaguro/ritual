@@ -67,17 +67,28 @@ describe('createSession', () => {
 })
 
 describe('markLogged', () => {
-  it('drops movements that were planned but not done, rather than recording misses', () => {
-    const planned = session('2026-08-03', ['m1'], { planned: ['m2', 'm3'] })
+  it('keeps every movement still on the list and marks it done', () => {
+    // Regression guard. markLogged used to filter to `m.done`, and once the
+    // per-movement tick was removed from the UI nothing could ever set that
+    // flag — so logging a session silently threw away every movement picked,
+    // and staleness never advanced. Removing one you skipped is a single tap,
+    // so presence on the list is the whole signal.
+    const picked = session('2026-08-16', [], { planned: ['m1', 'm2', 'm3'] })
 
-    const logged = markLogged(planned)
+    const logged = markLogged(picked)
 
     expect(logged.status).toBe('logged')
-    expect(logged.movements.map((m) => m.movementId)).toEqual(['m1'])
+    expect(logged.movements.map((m) => m.movementId)).toEqual(['m1', 'm2', 'm3'])
+    expect(logged.movements.every((m) => m.done)).toBe(true)
   })
 
-  it('keeps a session with nothing done rather than erroring', () => {
-    const logged = markLogged(session('2026-08-03', [], { planned: ['m1'] }))
+  it('leaves already-done movements done', () => {
+    const logged = markLogged(session('2026-08-03', ['m1']))
+    expect(logged.movements.map((m) => m.done)).toEqual([true])
+  })
+
+  it('handles a session with no movements at all', () => {
+    const logged = markLogged(session('2026-08-03', []))
     expect(logged.movements).toEqual([])
     expect(logged.status).toBe('logged')
   })

@@ -1,7 +1,12 @@
 import { useMemo, useState, type CSSProperties } from 'react'
 import type { Movement, Session, SplitType } from '../../data/types'
 import { useStore } from '../../data/store'
-import { formatDaysSince, formatLongDay, formatRelativeDay } from '../../domain/dates'
+import {
+  formatDaysSince,
+  formatLongDay,
+  formatRelativeDay,
+  today as todayISO,
+} from '../../domain/dates'
 import { flowMeta } from '../../domain/flow'
 import { markLogged, sessionTitle, SPLITS, splitColor, splitLabel, touch } from '../../domain/sessions'
 import { forSplit, movementStaleness } from '../../domain/staleness'
@@ -34,10 +39,28 @@ export function SessionScreen({ sessionId, onBack }: { sessionId: string; onBack
   /** The chosen split's library, stalest first, with current selection state. */
   const library = useMemo(() => {
     if (!session?.splitType) return []
-    const ranked = movementStaleness(movements, sessions)
-    const scoped = forSplit(ranked, session.splitType)
+
+    // Rank against history *excluding this session*. Picking a movement marks
+    // it done, which would otherwise make it instantly fresh and send it to the
+    // bottom of a stalest-first list — the row would vanish from under your
+    // thumb and reappear twenty places down. Holding the order to what was true
+    // before today keeps the list still while you work through it.
+    const history = sessions.filter((s) => s.id !== session.id)
+    const ranked = movementStaleness(movements, history)
     const selected = new Set(session.movements.map((m) => m.movementId))
-    return scoped.map((item) => ({ ...item, selected: selected.has(item.movement.id) }))
+
+    const scoped = forSplit(ranked, session.splitType)
+
+    // Anything already picked stays visible even if it doesn't belong to this
+    // split — otherwise switching Push to Pull strands the pick: the count
+    // still includes it, no row shows it, and there is no way to remove it.
+    const inScope = new Set(scoped.map((i) => i.movement.id))
+    const strays = ranked.filter((i) => selected.has(i.movement.id) && !inScope.has(i.movement.id))
+
+    return [...strays, ...scoped].map((item) => ({
+      ...item,
+      selected: selected.has(item.movement.id),
+    }))
   }, [movements, sessions, session])
 
   if (!session) {
@@ -60,25 +83,26 @@ export function SessionScreen({ sessionId, onBack }: { sessionId: string; onBack
       flow: session.flow.map((step) => (step.id === stepId ? { ...step, done: !step.done } : step)),
     })
 
-  const toggleMovement = (movement: Movement) => {
-    const existing = session.movements.find((m) => m.movementId === movement.id)
-    if (existing) {
-      update({ movements: session.movements.filter((m) => m.movementId !== movement.id) })
-      return
-    }
+  /** Adds a movement if it isn't on the list, without ever removing one. */
+  const selectMovement = (movement: Movement) => {
+    if (session.movements.some((m) => m.movementId === movement.id)) return
+    // Picking on today's session means you did it. Picking on a session dated
+    // in the future is an intention, and is marked done when it gets logged.
+    const isFuture = session.date > todayISO()
     update({
       movements: [
         ...session.movements,
-        {
-          movementId: movement.id,
-          // Added while the session is still an intention counts as planned;
-          // added once it's underway was improvised.
-          planned: session.status === 'planned',
-          // Ticking it mid-session means you just did it — no second tap.
-          done: session.status !== 'planned',
-        },
+        { movementId: movement.id, planned: isFuture, done: !isFuture },
       ],
     })
+  }
+
+  const toggleMovement = (movement: Movement) => {
+    if (session.movements.some((m) => m.movementId === movement.id)) {
+      update({ movements: session.movements.filter((m) => m.movementId !== movement.id) })
+      return
+    }
+    selectMovement(movement)
   }
 
   const finish = () => {
@@ -139,6 +163,10 @@ export function SessionScreen({ sessionId, onBack }: { sessionId: string; onBack
         <ListSection>
           {!session.splitType ? (
             <div className={styles.pickPrompt}>Pick a day above to see its movements.</div>
+          ) : library.length === 0 ? (
+            <div className={styles.pickPrompt}>
+              Nothing in your library for this day yet — add one below.
+            </div>
           ) : (
             <>
               {library.map((item) => (
@@ -235,7 +263,9 @@ export function SessionScreen({ sessionId, onBack }: { sessionId: string; onBack
         open={addingNew}
         onClose={() => setAddingNew(false)}
         split={session.splitType}
-        onCreated={toggleMovement}
+        // Select, never toggle: typing the name of something already picked
+        // resolves to the existing movement, and toggling would remove it.
+        onCreated={selectMovement}
       />
     </>
   )
