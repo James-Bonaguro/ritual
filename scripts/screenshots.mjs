@@ -92,24 +92,32 @@ console.log('\niPhone 14 — light')
   await shot(page, 'session-push-library')
 
   /* ---- Regression: tap the checkmark, not the label -------------------- */
-  const firstRow = page.locator('button[aria-pressed]').filter({ hasText: /Last done|Never logged/ }).first()
-  const movementName = (await firstRow.innerText()).split('\n')[0]
+  const rows = page.locator('button[aria-pressed]').filter({ hasText: /Last done|Never logged/ })
+  const movementName = (await rows.first().innerText()).split('\n')[0]
+  const secondName = (await rows.nth(1).innerText()).split('\n')[0]
 
-  // Click the checkmark's own bounding box. Under the old markup this was a
-  // nested <button>, so the click fired the toggle twice and cancelled itself.
-  const mark = firstRow.locator('span').first()
-  await mark.click()
+  // Track rows by name, not position: if picking ever reorders the list these
+  // assertions must fail loudly rather than silently follow whatever slid into
+  // the slot. Picking used to do exactly that.
+  const rowFor = (name) => page.locator('button[aria-pressed]').filter({ hasText: name }).first()
+
+  // Click the checkmark's own box. Under the old markup this was a nested
+  // <button>, so the click fired the toggle twice and cancelled itself out.
+  await rowFor(movementName).locator('span').first().click()
   await page.waitForTimeout(300)
 
   check(
-    (await firstRow.getAttribute('aria-pressed')) === 'true',
+    (await rowFor(movementName).getAttribute('aria-pressed')) === 'true',
     `tapping the checkmark did not select "${movementName}"`,
   )
   check(await page.getByText('1 picked').isVisible(), 'selection count did not reach "1 picked"')
+  check(
+    (await rows.first().innerText()).startsWith(movementName),
+    `picking "${movementName}" reordered the list — rows must not move under your thumb`,
+  )
 
   // And a second one via the label, to prove both paths agree.
-  const secondRow = page.locator('button[aria-pressed]').filter({ hasText: /Last done|Never logged/ }).nth(1)
-  await secondRow.click()
+  await rowFor(secondName).click()
   await page.waitForTimeout(300)
   check(await page.getByText('2 picked').isVisible(), 'second selection did not stick')
 
@@ -124,6 +132,26 @@ console.log('\niPhone 14 — light')
   await page.getByLabel('Session notes').fill('Superset the last two. Left shoulder fine today.')
   await page.waitForTimeout(250)
   await shot(page, 'session-notes')
+
+  /* ---- Regression: logging must not discard what you picked -------------
+   * The earlier pass stopped at "the checkmark sticks", which is why a bug
+   * that threw away every movement on log went unnoticed: the session screen
+   * looked right, and only the library afterwards told the truth.
+   */
+  await page.getByRole('button', { name: 'Log this session' }).click()
+  await page.waitForTimeout(700)
+
+  await tab(page, 'Movements').click()
+  await page.waitForTimeout(500)
+
+  const logged = page.locator('button').filter({ hasText: movementName }).first()
+  const loggedText = await logged.innerText()
+  check(
+    !/Not in the last 30 days/.test(loggedText),
+    `"${movementName}" still reads as never done after logging — picked movements ` +
+      `are being discarded (got: ${loggedText.replace(/\n/g, ' | ')})`,
+  )
+  await shot(page, 'movements-after-logging')
 
   await context.close()
 }

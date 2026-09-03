@@ -95,14 +95,18 @@ export function doneMovementIds(session: Session): string[] {
 /**
  * Marks a session as the record of what happened.
  *
- * Movements that were planned but not ticked are dropped entirely rather than
- * retained as misses — there is no such thing as a missed movement here.
+ * Everything still on the list counts as done. Removing a movement you skipped
+ * is the same single tap as adding it, so a separate "did you really" flag
+ * earns nothing — and it actively hurt: once the per-movement tick was removed
+ * from the UI, `done` could never become true, and filtering on it here threw
+ * away every movement the user picked. Staleness then never advanced, which is
+ * the one thing this app exists to do.
  */
 export function markLogged(session: Session): Session {
   return touch({
     ...session,
     status: 'logged',
-    movements: session.movements.filter((m) => m.done),
+    movements: session.movements.map((m) => ({ ...m, done: true })),
   })
 }
 

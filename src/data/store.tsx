@@ -52,6 +52,39 @@ type StoreValue = {
 
 const StoreContext = createContext<StoreValue | null>(null)
 
+/**
+ * Tops up the starter library, persisting anything it adds.
+ *
+ * Only inserts names that aren't already present, so nothing the user created
+ * is disturbed and a second run is a no-op. Guarded by seedVersion so a
+ * movement deleted on purpose doesn't reappear on the next launch.
+ */
+async function seedLibrary(
+  repository: Repository,
+  existing: Movement[],
+  settings: Settings,
+): Promise<{ movements: Movement[]; settings: Settings }> {
+  if ((settings.seedVersion ?? 0) >= SEED_VERSION) return { movements: existing, settings }
+
+  const additions = movementsToSeed(existing).map((seed) =>
+    createMovement({
+      name: seed.name,
+      splits: seed.splits,
+      areas: seed.areas,
+      order: seed.order,
+    }),
+  )
+
+  if (additions.length > 0) {
+    await Promise.all(additions.map((m) => repository.putMovement(m)))
+  }
+
+  const stamped = { ...settings, seedVersion: SEED_VERSION }
+  await repository.putSettings(stamped)
+
+  return { movements: [...existing, ...additions], settings: stamped }
+}
+
 export function StoreProvider({
   children,
   repository = localRepository,
@@ -79,31 +112,21 @@ export function StoreProvider({
           ? { ...DEFAULT_SETTINGS, ...loadedSettings }
           : DEFAULT_SETTINGS
 
-        // Top up the starter library. Only ever adds names that aren't already
-        // present, so nothing the user created is touched and re-running is a
-        // no-op. Guarded by seedVersion so a movement they deleted on purpose
-        // doesn't reappear on the next launch.
+        // Seeding gets its own guard. Folded into the outer try, a failed write
+        // — a storage quota, a blocked upgrade — would skip the setters below
+        // and render a user with years of history an empty app, every launch.
         let movementsNow = loadedMovements
-        if ((settingsNow.seedVersion ?? 0) < SEED_VERSION) {
-          const additions = movementsToSeed(loadedMovements).map((seed) =>
-            createMovement({
-              name: seed.name,
-              splits: seed.splits,
-              areas: seed.areas,
-              order: seed.order,
-            }),
-          )
-          if (additions.length > 0) {
-            await Promise.all(additions.map((m) => repository.putMovement(m)))
-            movementsNow = [...loadedMovements, ...additions]
-          }
-          const seeded = { ...settingsNow, seedVersion: SEED_VERSION }
-          await repository.putSettings(seeded)
-          if (!cancelled) setSettings(seeded)
-        } else {
-          setSettings(settingsNow)
+        let settingsFinal = settingsNow
+        try {
+          const result = await seedLibrary(repository, loadedMovements, settingsNow)
+          movementsNow = result.movements
+          settingsFinal = result.settings
+        } catch (error) {
+          console.error('Could not seed the starter library', error)
         }
 
+        if (cancelled) return
+        setSettings(settingsFinal)
         setMovements(movementsNow)
         setSessions(sortSessions(loadedSessions))
       } catch (error) {
@@ -206,9 +229,20 @@ export function StoreProvider({
 
   const clearAll = useCallback(async () => {
     await repository.clear()
-    setMovements([])
     setSessions([])
-    setSettings(DEFAULT_SETTINGS)
+
+    // Re-seed rather than leaving a bare library. Seeding otherwise only runs
+    // on mount, so erasing would strand the user with nothing to pick until
+    // they happened to reload the page.
+    try {
+      const seeded = await seedLibrary(repository, [], DEFAULT_SETTINGS)
+      setMovements(seeded.movements)
+      setSettings(seeded.settings)
+    } catch (error) {
+      console.error('Could not re-seed after erasing', error)
+      setMovements([])
+      setSettings(DEFAULT_SETTINGS)
+    }
   }, [repository])
 
   const movementsById = useMemo(() => new Map(movements.map((m) => [m.id, m])), [movements])
