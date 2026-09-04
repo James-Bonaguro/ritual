@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import type { Appearance, Backup } from '../../data/types'
 import { useStore } from '../../data/store'
 import { syncStatus } from '../../data/sync'
-import { isConfigured as syncConfigured, sendMagicLink } from '../../data/supabase'
+import { isConfigured as syncConfigured, sendSignInEmail, verifyOtp } from '../../data/supabase'
 import { DEFAULT_VISIT_TEMPLATE } from '../../domain/flow'
 import { Screen } from '../../components/ios/Screen'
 import { BackButton } from '../session/SessionScreen'
@@ -32,7 +32,9 @@ export function SettingsScreen({
   const [message, setMessage] = useState<string | null>(null)
   const [confirmingWipe, setConfirmingWipe] = useState(false)
   const [email, setEmail] = useState('')
-  const [linkSent, setLinkSent] = useState(false)
+  const [code, setCode] = useState('')
+  const [codeSent, setCodeSent] = useState(false)
+  const [verifying, setVerifying] = useState(false)
   const [syncing, setSyncing] = useState(false)
 
   const download = () => {
@@ -70,13 +72,32 @@ export function SettingsScreen({
 
   const sync = syncStatus()
 
-  const sendLink = async () => {
+  const sendCode = async () => {
+    if (!email.trim()) return
     try {
-      await sendMagicLink(email)
-      setLinkSent(true)
-      setMessage(`Check ${email} for a sign-in link.`)
+      await sendSignInEmail(email.trim())
+      setCodeSent(true)
+      setMessage(`Sent a code to ${email.trim()}.`)
     } catch {
-      setMessage("Couldn't send that link. Check the address and try again.")
+      setMessage("Couldn't send that email. Check the address and try again.")
+    }
+  }
+
+  const submitCode = async () => {
+    if (!code.trim()) return
+    setVerifying(true)
+    try {
+      await verifyOtp(email.trim(), code)
+      setCode('')
+      setCodeSent(false)
+      // verifyOtp has stored the session; syncNow picks it up, publishes it to
+      // the rest of the app and pulls whatever the other device already wrote.
+      const result = await syncNow()
+      setMessage(`Signed in — ${result.pulled} pulled, ${result.pushed} pushed.`)
+    } catch {
+      setMessage("That code didn't work. It may have expired — send a new one.")
+    } finally {
+      setVerifying(false)
     }
   }
 
@@ -129,8 +150,8 @@ export function SettingsScreen({
             ? sync.detail
             : auth
               ? `Signed in as ${auth.user.email ?? auth.user.id}.`
-              : linkSent
-                ? "Tap the link in that email on this device to finish signing in — it'll open right back here."
+              : codeSent
+                ? 'Enter the six-digit code from that email. Tapping the link in it works too, but only in the browser it opens in — the code signs in right here.'
                 : sync.detail
         }
         separatorInset={57}
@@ -147,11 +168,30 @@ export function SettingsScreen({
               onChange={setEmail}
               placeholder="you@email.com"
               inputMode="email"
-              ariaLabel="Email for sign-in link"
-              onSubmit={() => void sendLink()}
+              ariaLabel="Email for the sign-in code"
+              onSubmit={() => void sendCode()}
             />
-            <Button small onClick={() => void sendLink()}>
-              {linkSent ? 'Resend' : 'Send link'}
+            <Button small style={{ whiteSpace: 'nowrap' }} onClick={() => void sendCode()}>
+              {codeSent ? 'Resend' : 'Send code'}
+            </Button>
+          </div>
+        ) : null}
+        {syncConfigured() && !auth && codeSent ? (
+          <div style={{ padding: '12px 16px', display: 'flex', gap: 8 }}>
+            <TextField
+              value={code}
+              onChange={setCode}
+              placeholder="123456"
+              inputMode="numeric"
+              ariaLabel="Six-digit sign-in code"
+              onSubmit={() => void submitCode()}
+            />
+            <Button
+              small
+              style={{ whiteSpace: 'nowrap' }}
+              onClick={verifying ? undefined : () => void submitCode()}
+            >
+              {verifying ? 'Signing in…' : 'Sign in'}
             </Button>
           </div>
         ) : null}
