@@ -36,8 +36,13 @@ export function loadAuth(): AuthSession | null {
 }
 
 export function storeAuth(session: AuthSession | null) {
-  if (session) localStorage.setItem(TOKEN_KEY, JSON.stringify(session))
-  else localStorage.removeItem(TOKEN_KEY)
+  try {
+    if (session) localStorage.setItem(TOKEN_KEY, JSON.stringify(session))
+    else localStorage.removeItem(TOKEN_KEY)
+  } catch {
+    // Cookies-blocked configurations throw here. Sync just won't persist
+    // sign-in across reloads; nothing local is at risk.
+  }
 }
 
 function requireConfig(): { url: string; key: string } {
@@ -57,6 +62,22 @@ export async function sendMagicLink(email: string): Promise<void> {
 }
 
 /**
+ * Supabase access tokens are JWTs; `sub` and `email` are ordinary claims in
+ * the payload. Decoding them locally avoids a round trip to /auth/v1/user
+ * just to learn who the token that GoTrue just issued belongs to.
+ */
+function decodeAccessToken(token: string): { id: string; email?: string } | null {
+  try {
+    const payload = token.split('.')[1]
+    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
+    const claims = JSON.parse(json) as { sub: string; email?: string }
+    return { id: claims.sub, email: claims.email }
+  } catch {
+    return null
+  }
+}
+
+/**
  * GoTrue returns the session in the URL fragment after a magic-link click.
  * The fragment is stripped immediately so the token doesn't sit in history.
  */
@@ -69,11 +90,14 @@ export function consumeAuthRedirect(): AuthSession | null {
   const expiresIn = Number(params.get('expires_in') ?? '3600')
   if (!accessToken || !refreshToken) return null
 
+  const user = decodeAccessToken(accessToken)
+  if (!user) return null
+
   const session: AuthSession = {
     access_token: accessToken,
     refresh_token: refreshToken,
     expires_at: Date.now() + expiresIn * 1000,
-    user: { id: '', email: undefined },
+    user,
   }
   storeAuth(session)
   history.replaceState(null, '', window.location.pathname + window.location.search)

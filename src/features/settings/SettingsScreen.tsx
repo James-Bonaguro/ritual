@@ -2,11 +2,12 @@ import { useRef, useState } from 'react'
 import type { Appearance, Backup } from '../../data/types'
 import { useStore } from '../../data/store'
 import { syncStatus } from '../../data/sync'
+import { isConfigured as syncConfigured, sendMagicLink } from '../../data/supabase'
 import { DEFAULT_VISIT_TEMPLATE } from '../../domain/flow'
 import { Screen } from '../../components/ios/Screen'
 import { BackButton } from '../session/SessionScreen'
 import { ListRow, ListSection, RowIcon } from '../../components/ios/List'
-import { Button, Segmented } from '../../components/ios/Controls'
+import { Button, Segmented, TextField } from '../../components/ios/Controls'
 
 export function SettingsScreen({
   onBack,
@@ -15,11 +16,24 @@ export function SettingsScreen({
   onBack: () => void
   onOpenVisitTemplate: () => void
 }) {
-  const { settings, saveSettings, exportBackup, importBackup, clearAll, sessions, movements } =
-    useStore()
+  const {
+    settings,
+    saveSettings,
+    exportBackup,
+    importBackup,
+    clearAll,
+    sessions,
+    movements,
+    auth,
+    syncNow,
+    signOutOfSync,
+  } = useStore()
   const fileInput = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [confirmingWipe, setConfirmingWipe] = useState(false)
+  const [email, setEmail] = useState('')
+  const [linkSent, setLinkSent] = useState(false)
+  const [syncing, setSyncing] = useState(false)
 
   const download = () => {
     const backup = exportBackup()
@@ -56,6 +70,28 @@ export function SettingsScreen({
 
   const sync = syncStatus()
 
+  const sendLink = async () => {
+    try {
+      await sendMagicLink(email)
+      setLinkSent(true)
+      setMessage(`Check ${email} for a sign-in link.`)
+    } catch {
+      setMessage("Couldn't send that link. Check the address and try again.")
+    }
+  }
+
+  const doSync = async () => {
+    setSyncing(true)
+    try {
+      const result = await syncNow()
+      setMessage(`Synced — ${result.pulled} pulled, ${result.pushed} pushed.`)
+    } catch {
+      setMessage("Couldn't sync — check your connection and try again.")
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   return (
     <Screen title="Settings" leading={<BackButton onClick={onBack} />}>
       <ListSection header="Appearance">
@@ -86,12 +122,49 @@ export function SettingsScreen({
         />
       </ListSection>
 
-      <ListSection header="Sync" footer={sync.detail} separatorInset={57}>
+      <ListSection
+        header="Sync"
+        footer={
+          !syncConfigured()
+            ? sync.detail
+            : auth
+              ? `Signed in as ${auth.user.email ?? auth.user.id}.`
+              : linkSent
+                ? "Tap the link in that email on this device to finish signing in — it'll open right back here."
+                : sync.detail
+        }
+        separatorInset={57}
+      >
         <ListRow
           title="Cross-device sync"
-          value={sync.label}
+          value={auth ? 'Signed in' : sync.label}
           leading={<RowIcon name="vibration-plate" tint="var(--blue)" />}
         />
+        {syncConfigured() && !auth ? (
+          <div style={{ padding: '12px 16px', display: 'flex', gap: 8 }}>
+            <TextField
+              value={email}
+              onChange={setEmail}
+              placeholder="you@email.com"
+              inputMode="email"
+              ariaLabel="Email for sign-in link"
+              onSubmit={() => void sendLink()}
+            />
+            <Button small onClick={() => void sendLink()}>
+              {linkSent ? 'Resend' : 'Send link'}
+            </Button>
+          </div>
+        ) : null}
+        {syncConfigured() && auth ? (
+          <>
+            <ListRow
+              title={syncing ? 'Syncing…' : 'Sync now'}
+              onClick={syncing ? undefined : () => void doSync()}
+              centered
+            />
+            <ListRow title="Sign out of sync" destructive centered onClick={() => void signOutOfSync()} />
+          </>
+        ) : null}
       </ListSection>
 
       <ListSection
