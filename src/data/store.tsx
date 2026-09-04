@@ -13,6 +13,14 @@ import type { Repository } from './repository'
 import { DEFAULT_VISIT_TEMPLATE } from '../domain/flow'
 import { movementsToSeed, SEED_VERSION } from '../domain/library'
 import { createMovement, sortSessions } from '../domain/sessions'
+import {
+  consumeAuthRedirect,
+  currentAuth,
+  isConfigured as syncConfigured,
+  signOut as signOutOfSupabase,
+  type AuthSession,
+} from './supabase'
+import { syncNow as reconcileWithSupabase } from './sync'
 
 /*
  * The whole database is held in memory.
@@ -48,6 +56,12 @@ type StoreValue = {
   exportBackup: () => Backup
   importBackup: (backup: Backup) => Promise<void>
   clearAll: () => Promise<void>
+
+  /** Null until a magic-link sign-in resolves, or once signed out. */
+  auth: AuthSession | null
+  /** Pulls and pushes against Supabase, then reloads local state with whatever changed. No-op if not configured or not signed in. */
+  syncNow: () => Promise<{ pulled: number; pushed: number }>
+  signOutOfSync: () => Promise<void>
 }
 
 const StoreContext = createContext<StoreValue | null>(null)
@@ -120,6 +134,7 @@ export function StoreProvider({
   const [movements, setMovements] = useState<Movement[]>([])
   const [sessions, setSessions] = useState<Session[]>([])
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
+  const [auth, setAuth] = useState<AuthSession | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -170,6 +185,46 @@ export function StoreProvider({
       cancelled = true
     }
   }, [repository])
+
+  const syncNow = useCallback(async () => {
+    if (!syncConfigured()) return { pulled: 0, pushed: 0 }
+    const session = await currentAuth()
+    setAuth(session)
+    if (!session) return { pulled: 0, pushed: 0 }
+
+    const result = await reconcileWithSupabase(repository)
+    // syncNow writes reconciled records straight to the repository, bypassing
+    // the in-memory state above — reload from it so a pull actually shows up.
+    const [freshMovements, freshSessions, freshSettings] = await Promise.all([
+      repository.listMovements(),
+      repository.listSessions(),
+      repository.getSettings(),
+    ])
+    setMovements(freshMovements)
+    setSessions(sortSessions(freshSessions))
+    if (freshSettings) setSettings({ ...DEFAULT_SETTINGS, ...freshSettings })
+    return result
+  }, [repository])
+
+  // Once the local load has settled, pick up a session from wherever it's
+  // coming from — a magic-link redirect just clicked, or one already stored
+  // from an earlier visit — and reconcile in the background. Sync is
+  // deliberately never on the path to `ready`: the gym has bad wifi, and the
+  // local copy is always correct enough to open with.
+  useEffect(() => {
+    if (!ready || !syncConfigured()) return
+    consumeAuthRedirect()
+    void syncNow().catch((error: unknown) => {
+      console.error('Sync failed', error)
+    })
+    // Deliberately keyed on `ready` alone: this should fire once, on the
+    // transition to ready, not again every time syncNow's identity changes.
+  }, [ready])
+
+  const signOutOfSync = useCallback(async () => {
+    await signOutOfSupabase()
+    setAuth(null)
+  }, [])
 
   const saveSession = useCallback(
     async (session: Session) => {
@@ -297,6 +352,9 @@ export function StoreProvider({
       exportBackup,
       importBackup,
       clearAll,
+      auth,
+      syncNow,
+      signOutOfSync,
     }),
     [
       ready,
@@ -313,6 +371,9 @@ export function StoreProvider({
       exportBackup,
       importBackup,
       clearAll,
+      auth,
+      syncNow,
+      signOutOfSync,
     ],
   )
 

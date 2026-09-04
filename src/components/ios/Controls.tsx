@@ -165,7 +165,7 @@ type TextFieldProps = {
   trailing?: ReactNode
   autoFocus?: boolean
   onSubmit?: () => void
-  inputMode?: 'text' | 'numeric'
+  inputMode?: 'text' | 'numeric' | 'email'
   ariaLabel?: string
 }
 
