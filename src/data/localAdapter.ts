@@ -17,23 +17,50 @@ interface RitualDB extends DBSchema {
 const DB_NAME = 'ritual'
 const DB_VERSION = 1
 
+// Safari has a long-standing bug where an IDBOpenDBRequest can simply never
+// fire success, error, or blocked — most often on a cold launch. Memoizing
+// that hung promise would wedge every read and write for the rest of the
+// tab's life. On timeout the slot is cleared instead, so the next call opens
+// a fresh request rather than awaiting one that already died.
+const DB_OPEN_TIMEOUT_MS = 4000
+
 let dbPromise: Promise<IDBPDatabase<RitualDB>> | null = null
 
 function db(): Promise<IDBPDatabase<RitualDB>> {
-  dbPromise ??= openDB<RitualDB>(DB_NAME, DB_VERSION, {
-    upgrade(database) {
-      if (!database.objectStoreNames.contains('movements')) {
-        database.createObjectStore('movements', { keyPath: 'id' })
-      }
-      if (!database.objectStoreNames.contains('sessions')) {
-        const store = database.createObjectStore('sessions', { keyPath: 'id' })
-        store.createIndex('date', 'date')
-      }
-      if (!database.objectStoreNames.contains('settings')) {
-        database.createObjectStore('settings', { keyPath: 'id' })
-      }
-    },
-  })
+  if (!dbPromise) {
+    const opening = openDB<RitualDB>(DB_NAME, DB_VERSION, {
+      upgrade(database) {
+        if (!database.objectStoreNames.contains('movements')) {
+          database.createObjectStore('movements', { keyPath: 'id' })
+        }
+        if (!database.objectStoreNames.contains('sessions')) {
+          const store = database.createObjectStore('sessions', { keyPath: 'id' })
+          store.createIndex('date', 'date')
+        }
+        if (!database.objectStoreNames.contains('settings')) {
+          database.createObjectStore('settings', { keyPath: 'id' })
+        }
+      },
+    })
+
+    dbPromise = new Promise<IDBPDatabase<RitualDB>>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        dbPromise = null
+        reject(new Error('Opening the local database timed out'))
+      }, DB_OPEN_TIMEOUT_MS)
+      opening.then(
+        (database) => {
+          clearTimeout(timer)
+          resolve(database)
+        },
+        (error: unknown) => {
+          clearTimeout(timer)
+          dbPromise = null
+          reject(error)
+        },
+      )
+    })
+  }
   return dbPromise
 }
 

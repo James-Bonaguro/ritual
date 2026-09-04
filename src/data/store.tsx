@@ -52,6 +52,30 @@ type StoreValue = {
 
 const StoreContext = createContext<StoreValue | null>(null)
 
+// Safari has a long-standing bug where indexedDB.open() can hang forever —
+// neither succeeding, failing, nor firing "blocked" — especially on a cold
+// launch from the home screen. Nothing renders until `ready` is true, so an
+// unbounded wait there is a permanently blank app, not a slow one. Racing the
+// initial load against a timeout means that rare hang costs one empty
+// session instead of the app never opening at all.
+const LOAD_TIMEOUT_MS = 4000
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`Timed out after ${ms}ms`)), ms)
+    promise.then(
+      (value) => {
+        clearTimeout(timer)
+        resolve(value)
+      },
+      (error: unknown) => {
+        clearTimeout(timer)
+        reject(error)
+      },
+    )
+  })
+}
+
 /**
  * Tops up the starter library, persisting anything it adds.
  *
@@ -101,11 +125,14 @@ export function StoreProvider({
     let cancelled = false
     void (async () => {
       try {
-        const [loadedMovements, loadedSessions, loadedSettings] = await Promise.all([
-          repository.listMovements(),
-          repository.listSessions(),
-          repository.getSettings(),
-        ])
+        const [loadedMovements, loadedSessions, loadedSettings] = await withTimeout(
+          Promise.all([
+            repository.listMovements(),
+            repository.listSessions(),
+            repository.getSettings(),
+          ]),
+          LOAD_TIMEOUT_MS,
+        )
         if (cancelled) return
 
         const settingsNow = loadedSettings
@@ -131,8 +158,9 @@ export function StoreProvider({
         setSessions(sortSessions(loadedSessions))
       } catch (error) {
         // Private browsing and some locked-down configurations block
-        // IndexedDB. The app still works for the session; it just won't
-        // persist, which is better than a blank screen.
+        // IndexedDB outright; the timeout above catches Safari's open()-hangs-
+        // forever bug too. Either way the app still works for the session, it
+        // just won't persist — better than staying blank indefinitely.
         console.error('Could not open local database', error)
       } finally {
         if (!cancelled) setReady(true)
